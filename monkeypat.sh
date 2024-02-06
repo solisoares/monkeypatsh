@@ -12,6 +12,7 @@ function mon() {
         # Register a user command to be wrapped with monkeypatsh
         cmd="$2"
         echo "alias $cmd=$MON_DIR/_$cmd" | sudo tee --append $MON_CONFIG_FILE >/dev/null
+        echo "[MONKEYPATSH] Registered command '$cmd'"
         ;;
     patch)
         # Patch a sub command or option to the registered command
@@ -42,10 +43,17 @@ function ${cmd}_$sub() {
 $cmd \"\$@\"
 " | sudo tee --append $MON_DIR/$cmd >/dev/null
         sudo chmod +x $MON_DIR/$cmd
-        echo "[LOG] patched: $cmd $sub"
+        echo "[MONKEYPATSH] patched: $original_cmd $sub"
+        ;;
+    unregister)
+        original_cmd="$2"
+        cmd=_"$2"
+        sudo sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&\
+        sudo rm $MON_DIR/"$cmd" &&\
+        echo "[MONKEYPATSH] Unregistered command '$original_cmd'. You may refresh your session to apply this"
         ;;
     -h | --help | *)
-        echo -e "Commands available:\n\tregister\n\tpatch\n"
+        echo -e "Commands available:\n\tregister\n\tpatch\n\tunregister\n"
         echo -e "Options available:\n\t-h|--help"
         ;;
     esac
