@@ -63,6 +63,10 @@ $cmd \"\$@\"
         original_cmd="$2"
         editor $MON_DIR/_"$original_cmd"
         ;;
+    list)
+        echo '============ Mon Wrappers ============' &&
+            find $MON_DIR -type f ! -name 'mon'
+        ;;
     -h | --help | *)
         echo -e "Commands available:\n\tregister\n\tpatch\n\tunregister\n"
         echo -e "Options available:\n\t-h|--help"
