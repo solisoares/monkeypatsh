@@ -48,9 +48,16 @@ $cmd \"\$@\"
     unregister)
         original_cmd="$2"
         cmd=_"$2"
-        sudo sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&\
-        sudo rm $MON_DIR/"$cmd" &&\
-        echo "[MONKEYPATSH] Unregistered command '$original_cmd'. You may refresh your session to apply this"
+        sudo sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
+            sudo rm $MON_DIR/"$cmd" &&
+            echo "[MONKEYPATSH] Unregistered command '$original_cmd'. You may refresh your session to apply this"
+        ;;
+    check)
+        cat <(echo '============= Mon config file (~/.monconfig) =============') \
+            $MON_CONFIG_FILE <(echo -e '\n') \
+            <(echo '================== Mon binary (~/.mon/) ==================') \
+            <(ls -la $MON_DIR) \
+            <(echo -e '\n')
         ;;
     -h | --help | *)
         echo -e "Commands available:\n\tregister\n\tpatch\n\tunregister\n"
