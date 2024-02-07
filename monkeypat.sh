@@ -59,6 +59,10 @@ $cmd \"\$@\"
             <(ls -la $MON_DIR) \
             <(echo -e '\n')
         ;;
+    edit)
+        original_cmd="$2"
+        editor $MON_DIR/_"$original_cmd"
+        ;;
     -h | --help | *)
         echo -e "Commands available:\n\tregister\n\tpatch\n\tunregister\n"
         echo -e "Options available:\n\t-h|--help"
