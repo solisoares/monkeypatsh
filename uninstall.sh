@@ -1,15 +1,26 @@
 source ./constants.sh
 
-# Remove monkeypatsh executable and wrappers
-sudo rm -rf $MON_DIR
-echo "[MONKEYPATSH] Removed monkeypatsh binaries from $MON_DIR"
+function rm_mondir() {
+    # Remove monkeypatsh executable and wrappers
+    rm -rf $MON_DIR
+    echo "[MONKEYPATSH] Removed monkeypatsh binary and wrappers from $MON_DIR and this directory itself"
+}
 
-# Remove .monconfig file
-sudo rm $MON_CONFIG_FILE
-echo "[MONKEYPATSH] Removed $MON_CONFIG_FILE"
+function rm_config_file() {
+    # Remove .monconfig file
+    rm $MON_CONFIG_FILE
+    echo "[MONKEYPATSH] Removed $MON_CONFIG_FILE"
+}
 
-# Remove configs from .rc file 
-sudo sed -i '/monconfig/d' $SHRC_FILE
-echo "[MONKEYPATSH] Removed configs from $SHRC_FILE"
+function update_rc_file() {
+    # Remove setup configs from .rc file
+    sed -i '/monconfig/d' $SHRC_FILE
+    echo "[MONKEYPATSH] Removed setup configs from $SHRC_FILE"
+}
 
-echo "[MONKEYPATSH] All done. monkeypatsh has been uninstalled"
+rm_mondir &&
+    rm_config_file &&
+    update_rc_file &&
+    echo "[MONKEYPATSH] ✅ All done. monkeypatsh has been uninstalled." ||
+    echo "[MONKEYPATSH] ❌ Failed to uninstall monkeypatch"
+
