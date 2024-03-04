@@ -20,11 +20,13 @@ function setup_config_file() {
 	if ! grep "PATH=$MON_DIR:\$PATH" $MON_CONFIG_FILE >$DEVNULL; then
 		echo "PATH=$MON_DIR:\$PATH" >>$MON_CONFIG_FILE
 	fi
+	echo "[MONKEYPATSH] Updated PATH to look first at $MON_DIR"
+
+	# Add monkeypatsh completions
+	echo "complete -W 'register patch unregister check edit list -h --help' mon" >>$MON_CONFIG_FILE
 
 	# Allow original completion for existing commands
 	echo "setopt complete_aliases" >>$MON_CONFIG_FILE
-
-	echo "[MONKEYPATSH] Updated PATH to look first at $MON_DIR"
 }
 
 function setup_rc_file() {
