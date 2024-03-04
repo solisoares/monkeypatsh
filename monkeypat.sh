@@ -4,72 +4,114 @@ MON_DIR=~/.mon
 
 MON_CONFIG_FILE=~/.monconfig
 
-# monkeypatsh bin
-function mon() {
-    mon_cmd="$1"
-    case "$mon_cmd" in
-    register)
-        # Register a user command to be wrapped with monkeypatsh
-        cmd="$2"
-        echo "alias $cmd=$MON_DIR/_$cmd" | sudo tee --append $MON_CONFIG_FILE >/dev/null
+function __register() {
+    # Register a command to be wrapped with monkeypatsh
+    cmd="$1"
+    echo "alias $cmd=$MON_DIR/${cmd}_" >>$MON_CONFIG_FILE &&
+        touch "$MON_DIR/${cmd}_" &&
         echo "[MONKEYPATSH] Registered command '$cmd'"
-        ;;
-    patch)
-        # Patch a sub command or option to the registered command
-        original_cmd="$2"
-        cmd=_"$2"
-        sub="$3"
-        code="$4"
-        doc="$5"
-        echo "\
+}
+
+function __patch() {
+    # Patch a sub command or option to the registered command
+    original_cmd="$1"
+    cmd="${1}_"
+    sub="$2"
+    code="$3"
+    echo "\
 #!/usr/bin/bash
 
 function $cmd() {
-    sub=\$1
-    case \$sub in
+    sub=\"\$@\"
+    case \"\$sub\" in
         $sub)
-           ${cmd}_$sub 
+           _$sub
         ;;
         *)
-           \\$original_cmd \$sub
+           \\$original_cmd \"\$@\"
         ;;
     esac
 }
 
-function ${cmd}_$sub() {
+function _$sub() {
     $code
 }
 
 $cmd \"\$@\"
-" | sudo tee --append $MON_DIR/$cmd >/dev/null
-        sudo chmod +x $MON_DIR/$cmd
+" >>$MON_DIR/$cmd &&
+        sudo chmod +x $MON_DIR/$cmd &&
         echo "[MONKEYPATSH] patched: $original_cmd $sub"
+}
+
+function __unregister() {
+    original_cmd="$1"
+    cmd="$2"_
+    sudo sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
+        sudo rm $MON_DIR/"$cmd" &&
+        echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'."
+    echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
+}
+
+function __check() {
+    cat <(echo '============= Mon config file (~/.monconfig) =============') \
+        $MON_CONFIG_FILE <(echo -e '\n') \
+        <(echo '================== Mon binary (~/.mon/) ==================') \
+        <(ls -l $MON_DIR) \
+        <(echo -e '\n')
+}
+
+function __edit() {
+    original_cmd="$1"
+    editor $MON_DIR/"${original_cmd}_"
+}
+
+function __list() {
+    echo '============ Mon Wrappers ============' &&
+        find $MON_DIR -type f ! -name 'mon'
+}
+
+function __help() {
+    echo "\
+Commands available:
+    register
+    patch
+    unregister
+    check
+    edit
+    list
+
+Options available:
+    -h|--help
+"
+}
+
+function mon() {
+    mon_cmd="$1"
+    case "$mon_cmd" in
+    register)
+        shift
+        __register "$1"
+        ;;
+    patch)
+        shift
+        __patch "$@"
         ;;
     unregister)
-        original_cmd="$2"
-        cmd=_"$2"
-        sudo sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
-            sudo rm $MON_DIR/"$cmd" &&
-            echo "[MONKEYPATSH] Unregistered command '$original_cmd'. You may refresh your session to apply this"
+        shift
+        __unregister "$1"
         ;;
     check)
-        cat <(echo '============= Mon config file (~/.monconfig) =============') \
-            $MON_CONFIG_FILE <(echo -e '\n') \
-            <(echo '================== Mon binary (~/.mon/) ==================') \
-            <(ls -la $MON_DIR) \
-            <(echo -e '\n')
+        __check
         ;;
     edit)
-        original_cmd="$2"
-        editor $MON_DIR/_"$original_cmd"
+        shift
+        __edit "$1"
         ;;
     list)
-        echo '============ Mon Wrappers ============' &&
-            find $MON_DIR -type f ! -name 'mon'
+        __list
         ;;
     -h | --help | *)
-        echo -e "Commands available:\n\tregister\n\tpatch\n\tunregister\n\tcheck\n\tedit\n\tlist\n"
-        echo -e "Options available:\n\t-h|--help"
+        __help
         ;;
     esac
 }
