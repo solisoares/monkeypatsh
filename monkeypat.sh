@@ -66,8 +66,7 @@ function __edit() {
 }
 
 function __list() {
-    echo '============ Mon Wrappers ============' &&
-        find $MON_DIR -type f ! -name 'mon'
+    find $MON_DIR -type f ! -name 'mon' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
 }
 
 function __help() {
