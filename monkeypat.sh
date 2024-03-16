@@ -6,26 +6,27 @@ MON_CONFIG_FILE=~/.monconfig
 
 function __register() {
     # Register a command to be wrapped with monkeypatsh
-    cmd="$1"
-    echo "alias $cmd=$MON_DIR/${cmd}_" >>$MON_CONFIG_FILE &&
-        touch "$MON_DIR/${cmd}_" &&
-        echo "[MONKEYPATSH] Registered command '$cmd'"
+    original_cmd="$1"
+    wrapper="${original_cmd}_"
+    echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MON_CONFIG_FILE &&
+        touch "$MON_DIR/$wrapper" &&
+        echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
 
 function __patch() {
     # Patch a sub command or option to the registered command
     original_cmd="$1"
-    cmd="${1}_"
+    wrapper="${1}_"
     sub="$2"
     code="$3"
     echo "\
 #!/usr/bin/bash
 
-function $cmd() {
+function $wrapper() {
     sub=\"\$@\"
     case \"\$sub\" in
         $sub)
-           _$sub
+           __$sub
         ;;
         *)
             if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
@@ -33,21 +34,21 @@ function $cmd() {
     esac
 }
 
-function _$sub() {
+function __$sub() {
     $code
 }
 
-$cmd \"\$@\"
-" >>$MON_DIR/$cmd &&
-        sudo chmod +x $MON_DIR/$cmd &&
+$wrapper \"\$@\"
+" >>$MON_DIR/$wrapper &&
+        sudo chmod +x $MON_DIR/$wrapper &&
         echo "[MONKEYPATSH] patched: $original_cmd $sub"
 }
 
 function __unregister() {
     original_cmd="$1"
-    cmd="$1"_
+    wrapper="$1"_
     sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
-        rm $MON_DIR/"$cmd" &&
+        rm $MON_DIR/"$wrapper" &&
         echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'." &&
         echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
 }
