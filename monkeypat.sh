@@ -78,7 +78,7 @@ function __list() {
                 __list "$cmd_" | xargs -I {} echo "  " {}
             done
         elif [ -f "$MON_DIR/${cmd}_" ]; then
-            cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function _).*(?=\()'
+            cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function __).*(?=\()'
         else
             not_found='registered command'
             if [[ "$cmd" == -* ]]; then
