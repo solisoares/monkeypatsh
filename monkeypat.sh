@@ -91,15 +91,17 @@ function __list() {
 function __help() {
     echo "\
 Commands available:
-    register
-    patch
-    unregister
-    check
-    edit
-    list
+    register <cmd>                     - Register a command to be wrapped with monkeypatsh.
+    patch <cmd> <sub> <code>           - Patch a sub command or option to the registered command.
+    unregister <cmd>                   - Uregister a command. Remove the wrapper and reset its behavior.
+    check                              - [DEV] Quick sanity check.
+    edit <cmd>                         - Edit a registered command wrapper.
+    list [-r | --recursive] | [<cmd>]  - List all available monkeypatsh wrappers. If -r or --recursive is
+                                         used, list all wrappers and its patches. If <cmd> is used, list
+                                         all the patches added for this command.
 
 Options available:
-    -h|--help
+    -h|--help                          - Show this help and exit
 "
 }
 
@@ -129,8 +131,16 @@ function mon() {
         shift
         __list "$1"
         ;;
-    -h | --help | *)
+    -h | --help)
         __help
+        ;;
+    *)
+        if [ -z "$1" ]; then
+            __help
+        else
+            echo "mon: unrecognized option '$1'"
+            echo "Try 'mon --help' for more information."
+        fi
         ;;
     esac
 }
