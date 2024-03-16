@@ -108,28 +108,24 @@ Options available:
 
 function mon() {
     mon_cmd="$1"
+    shift
     case "$mon_cmd" in
     register)
-        shift
         __register "$1"
         ;;
     patch)
-        shift
         __patch "$@"
         ;;
     unregister)
-        shift
         __unregister "$1"
         ;;
     check)
         __check
         ;;
     edit)
-        shift
         __edit "$1"
         ;;
     list)
-        shift
         __list "$1"
         ;;
     -h | --help)
