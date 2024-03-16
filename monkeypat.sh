@@ -28,7 +28,7 @@ function $cmd() {
            _$sub
         ;;
         *)
-           \\$original_cmd \"\$@\"
+            if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
         ;;
     esac
 }
