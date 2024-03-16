@@ -66,7 +66,26 @@ function __edit() {
 }
 
 function __list() {
-    find $MON_DIR -type f ! -name 'mon' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
+    cmd="$1"
+    if [ -z "$cmd" ]; then
+        find $MON_DIR -type f ! -name 'mon' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
+    else
+        if [ "$cmd" = "-r" ] || [ "$cmd" = "--recursive" ]; then
+            cmds=$(__list)
+            for cmd_ in $cmds; do
+                echo "$cmd_:"
+                __list "$cmd_" | xargs -I {} echo "  " {}
+            done
+        elif [ -f "$MON_DIR/${cmd}_" ]; then
+            cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function _).*(?=\()'
+        else
+            not_found='registered command'
+            if [[ "$cmd" == -* ]]; then
+                not_found='option'
+            fi
+            echo "There is no $not_found named '$cmd'"
+        fi
+    fi
 }
 
 function __help() {
@@ -107,7 +126,8 @@ function mon() {
         __edit "$1"
         ;;
     list)
-        __list
+        shift
+        __list "$1"
         ;;
     -h | --help | *)
         __help
