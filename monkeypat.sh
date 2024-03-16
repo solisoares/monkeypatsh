@@ -46,10 +46,10 @@ $cmd \"\$@\"
 function __unregister() {
     original_cmd="$1"
     cmd="$1"_
-    sudo sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
-        sudo rm $MON_DIR/"$cmd" &&
-        echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'."
-    echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
+    sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
+        rm $MON_DIR/"$cmd" &&
+        echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'." &&
+        echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
 }
 
 function __check() {
