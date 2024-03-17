@@ -4,6 +4,19 @@ MON_DIR=~/.mon
 
 MON_CONFIG_FILE=~/.monconfig
 
+function _() {
+    # Handle multiple args for a given command
+    # This allows registering multiple monkeypatsh
+    # commands at once, i.e. `mon register <cmd>...`
+    cmd="$1"
+
+    shift
+    if [ "$#" -eq 0 ]; then return; fi
+    for arg in "$@"; do
+        "$cmd" "$arg"
+    done
+}
+
 function __register() {
     # Register a command to be wrapped with monkeypatsh
     original_cmd="$1"
@@ -92,9 +105,9 @@ function __list() {
 function __help() {
     echo "\
 Commands available:
-    register <cmd>                     - Register a command to be wrapped with monkeypatsh.
+    register <cmd>...                  - Register commands to be wrapped with monkeypatsh.
     patch <cmd> <sub> <code>           - Patch a sub command or option to the registered command.
-    unregister <cmd>                   - Uregister a command. Remove the wrapper and reset its behavior.
+    unregister <cmd>...                - Uregister commands. Remove the wrapper and reset its behavior.
     check                              - [DEV] Quick sanity check.
     edit <cmd>                         - Edit a registered command wrapper.
     list [-r | --recursive] | [<cmd>]  - List all available monkeypatsh wrappers. If -r or --recursive is
@@ -111,13 +124,13 @@ function mon() {
     shift
     case "$mon_cmd" in
     register)
-        __register "$1"
+        _ __register "$@"
         ;;
     patch)
         __patch "$@"
         ;;
     unregister)
-        __unregister "$1"
+        _ __unregister "$@"
         ;;
     check)
         __check
