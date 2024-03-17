@@ -45,6 +45,12 @@ function __patch() {
 
     if ! __is_registered "$wrapper"; then return 1; fi
 
+    if [ "$#" -ne 3 ]; then
+        echo "mon: missing argument for 'patch'"
+        echo "'patch' requires exactly 3 arguments, you provided $#"
+        return 1
+    fi
+
     echo "\
 #!/usr/bin/bash
 
