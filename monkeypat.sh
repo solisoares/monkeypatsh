@@ -8,13 +8,24 @@ function _() {
     # Handle multiple args for a given command
     # This allows registering multiple monkeypatsh
     # commands at once, i.e. `mon register <cmd>...`
+
     cmd="$1"
 
     shift
-    if [ "$#" -eq 0 ]; then return; fi
-    for arg in "$@"; do
-        "$cmd" "$arg"
-    done
+    if [ "$#" -eq 0 ]; then
+        echo "mon: missing argument for '${cmd:2}'"
+        echo "'${cmd:2}' requires at least 1 argument, you didn't provided one"
+        return 1
+    fi
+
+    function __() {
+        if [ "$#" -eq 0 ]; then return; fi
+        for arg in "$@"; do
+            "$cmd" "$arg"
+        done
+    }
+
+    __ "$@"
 }
 
 function __is_registered() {
@@ -29,6 +40,12 @@ function __is_registered() {
 
 function __register() {
     # Register a command to be wrapped with monkeypatsh
+    if [ "$#" -eq 0 ]; then
+        echo "mon: missing argument for 'register'"
+        echo "'register' requires at least 1 argument, you provided $#"
+        return 1
+    fi
+
     original_cmd="$1"
     wrapper="${original_cmd}_"
     echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MON_CONFIG_FILE &&
