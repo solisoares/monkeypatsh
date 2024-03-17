@@ -17,6 +17,15 @@ function _() {
     done
 }
 
+function __not_registered() {
+    wrapper="$1"
+    original_cmd="${wrapper:0:-1}" # wrappers have an underscore at the end: "<cmd>_"
+    if [ ! -f "$MON_DIR/$wrapper" ]; then
+        echo "[MONKEYPATSH] There is no registered command named '$original_cmd'. Register it with 'mon register $original_cmd'"
+    fi
+    return 0
+}
+
 function __register() {
     # Register a command to be wrapped with monkeypatsh
     original_cmd="$1"
@@ -32,6 +41,9 @@ function __patch() {
     wrapper="${1}_"
     sub="$2"
     code="$3"
+
+    if __not_registered "$wrapper"; then return 1; fi
+
     echo "\
 #!/usr/bin/bash
 
@@ -39,7 +51,7 @@ function $wrapper() {
     sub=\"\$@\"
     case \"\$sub\" in
         $sub)
-           __$sub
+            __$sub
         ;;
         *)
             if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
@@ -60,6 +72,9 @@ $wrapper \"\$@\"
 function __unregister() {
     original_cmd="$1"
     wrapper="$1"_
+
+    if __not_registered "$wrapper"; then return 1; fi
+
     sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
         rm $MON_DIR/"$wrapper" &&
         echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'." &&
