@@ -18,14 +18,10 @@ function _() {
         return 1
     fi
 
-    function __() {
-        if [ "$#" -eq 0 ]; then return; fi
-        for arg in "$@"; do
-            "$cmd" "$arg"
-        done
-    }
+    for arg in "$@"; do
+        "$cmd" "$arg"
+    done
 
-    __ "$@"
 }
 
 function __is_registered() {
