@@ -71,16 +71,20 @@ function $wrapper() {
     sub=\"\$@\"
     case \"\$sub\" in
         $sub)
-            __$sub
+            _$sub
         ;;
         *)
-            if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
+            _default
         ;;
     esac
 }
 
-function __$sub() {
-    $code
+function _default() {
+    if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
+}
+
+function _$sub() {
+    "$code"
 }
 
 $wrapper \"\$@\"
