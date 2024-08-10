@@ -114,8 +114,19 @@ function _check() {
 }
 
 function _edit() {
-    original_cmd="$1"
-    editor $MON_DIR/"${original_cmd}_"
+    if [ $# -eq 0 ]; then
+        editor $MON_DIR/"mon_"
+        return 0
+    fi
+
+    paths=()
+
+    for original_cmd in "$@"; do
+        paths+=($MON_DIR/"${original_cmd}_")
+    done
+
+    editor "${paths[@]}"
+    return 0
 }
 
 function _list() {
@@ -148,13 +159,14 @@ Commands available:
     patch <cmd> <sub> <code>           - Patch a sub command or option to the registered command.
     unregister <cmd>...                - Uregister commands. Remove the wrapper and reset its behavior.
     check                              - [DEV] Quick sanity check.
-    edit <cmd>                         - Edit a registered command wrapper.
+    edit [<cmd>...]                    - Edit registered command wrapper's with your default code editor.
+                                         If you want to edit mon itself you can do \`mon edit [mon]\`
     list [-r | --recursive] | [<cmd>]  - List all available monkeypatsh wrappers. If -r or --recursive is
                                          used, list all wrappers and its patches. If <cmd> is used, list
                                          all the patches added for this command.
 
 Options available:
-    -h|--help                          - Show this help and exit
+    -h|--help                          - Show this help and exit. Can also be shown with just \`mon\`
 "
 }
 
