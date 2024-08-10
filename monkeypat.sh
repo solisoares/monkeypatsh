@@ -24,7 +24,7 @@ function _() {
 
 }
 
-function __is_registered() {
+function _is_registered() {
     wrapper="$1"
     original_cmd="${wrapper:0:-1}" # wrappers have an underscore at the end: "<cmd>_"
     if [ ! -f "$MON_DIR/$wrapper" ]; then
@@ -34,7 +34,7 @@ function __is_registered() {
     return 0
 }
 
-function __register() {
+function _register() {
     # Register a command to be wrapped with monkeypatsh
     if [ "$#" -eq 0 ]; then
         echo "mon: missing argument for 'register'"
@@ -49,7 +49,7 @@ function __register() {
         echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
 
-function __patch() {
+function _patch() {
     # Patch a sub command or option to the registered command
     original_cmd="$1"
     wrapper="${1}_"
@@ -62,7 +62,7 @@ function __patch() {
         return 1
     fi
 
-    if ! __is_registered "$wrapper"; then return 1; fi
+    if ! _is_registered "$wrapper"; then return 1; fi
 
     echo "\
 #!/usr/bin/bash
@@ -89,11 +89,11 @@ $wrapper \"\$@\"
         echo "[MONKEYPATSH] patched: $original_cmd $sub"
 }
 
-function __unregister() {
+function _unregister() {
     original_cmd="$1"
     wrapper="$1"_
 
-    if ! __is_registered "$wrapper"; then return 1; fi
+    if ! _is_registered "$wrapper"; then return 1; fi
 
     sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
         rm $MON_DIR/"$wrapper" &&
@@ -101,7 +101,7 @@ function __unregister() {
         echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
 }
 
-function __check() {
+function _check() {
     cat <(echo '============= Mon config file (~/.monconfig) =============') \
         $MON_CONFIG_FILE <(echo -e '\n') \
         <(echo '================== Mon binary (~/.mon/) ==================') \
@@ -109,24 +109,24 @@ function __check() {
         <(echo -e '\n')
 }
 
-function __edit() {
+function _edit() {
     original_cmd="$1"
     editor $MON_DIR/"${original_cmd}_"
 }
 
-function __list() {
+function _list() {
     cmd="$1"
     if [ -z "$cmd" ]; then
         find $MON_DIR -type f ! -name 'mon' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
     else
         if [ "$cmd" = "-r" ] || [ "$cmd" = "--recursive" ]; then
-            cmds=$(__list)
+            cmds=$(_list)
             for cmd_ in $cmds; do
                 echo "$cmd_:"
-                __list "$cmd_" | xargs -I {} echo "  " {}
+                _list "$cmd_" | xargs -I {} echo "  " {}
             done
         elif [ -f "$MON_DIR/${cmd}_" ]; then
-            cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function __).*(?=\()'
+            cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function _).*(?=\()'
         else
             not_found='registered command'
             if [[ "$cmd" == -* ]]; then
@@ -137,7 +137,7 @@ function __list() {
     fi
 }
 
-function __help() {
+function _help() {
     echo "\
 Commands available:
     register <cmd>...                  - Register commands to be wrapped with monkeypatsh.
@@ -159,29 +159,29 @@ function mon() {
     shift
     case "$mon_cmd" in
     register)
-        _ __register "$@"
+        _ _register "$@"
         ;;
     patch)
-        __patch "$@"
+        _patch "$@"
         ;;
     unregister)
-        _ __unregister "$@"
+        _ _unregister "$@"
         ;;
     check)
-        __check
+        _check
         ;;
     edit)
-        __edit "$1"
+        _edit "$@"
         ;;
     list)
-        __list "$1"
+        _list "$1"
         ;;
     -h | --help)
-        __help
+        _help
         ;;
     *)
         if [ -z "$1" ]; then
-            __help
+            _help
         else
             echo "mon: unrecognized option '$1'"
             echo "Try 'mon --help' for more information."
