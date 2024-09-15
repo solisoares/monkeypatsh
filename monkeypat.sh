@@ -172,6 +172,11 @@ Options available:
 
 function mon() {
     mon_cmd="$1"
+    if [ -z "$mon_cmd" ]; then
+        _help
+        return
+    fi
+
     shift
     case "$mon_cmd" in
     register)
@@ -196,12 +201,8 @@ function mon() {
         _help
         ;;
     *)
-        if [ -z "$1" ]; then
-            _help
-        else
-            echo "mon: unrecognized option '$1'"
-            echo "Try 'mon --help' for more information."
-        fi
+        echo "mon: unrecognized option '$mon_cmd'"
+        echo "Try 'mon --help' for more information."
         ;;
     esac
 }
