@@ -8,9 +8,11 @@ MON_DIR=~/.mon
 # The monkeypatsh executable
 MON_BIN=$MON_DIR/mon_
 
-# Aliases to the wrappers and appended PATH variables
-# This is used to avoid clutter in the .rc file
 MON_CONFIG_FILE=~/.monconfig
+
+# Aliases to the wrappers and appended PATH variables
+# This is used to avoid clutter in the shell rc file
+MONRC_FILE=~/.monrc
 
 # TODO: support any .rc file
 SHRC_FILE=~/.zshrc

@@ -6,21 +6,27 @@ function rm_mondir() {
     echo "[MONKEYPATSH] Removed monkeypatsh binary and wrappers from $MON_DIR and this directory itself"
 }
 
-function rm_config_file() {
-    # Remove .monconfig file
-    rm $MON_CONFIG_FILE
-    echo "[MONKEYPATSH] Removed $MON_CONFIG_FILE"
+function rm_monrc_file() {
+    rm $MONRC_FILE
+    echo "[MONKEYPATSH] Removed $MONRC_FILE"
 }
 
-function update_rc_file() {
+function rm_monconfig_file() {
+    if [ -f $MON_CONFIG_FILE ]; then
+        rm $MON_CONFIG_FILE
+        echo "[MONKEYPATSH] Removed $MON_CONFIG_FILE"
+    fi
+}
+
+function update_shellrc_file() {
     # Remove setup configs from .rc file
-    sed -i '/monconfig/d' $SHRC_FILE
+    sed -i '/monrc/d' $SHRC_FILE
     echo "[MONKEYPATSH] Removed setup configs from $SHRC_FILE"
 }
 
 rm_mondir &&
-    rm_config_file &&
-    update_rc_file &&
+    rm_monrc_file &&
+    rm_monconfig_file &&
+    update_shellrc_file &&
     echo "[MONKEYPATSH] ✅ All done. monkeypatsh has been uninstalled." ||
     echo "[MONKEYPATSH] ❌ Failed to uninstall monkeypatch"
-

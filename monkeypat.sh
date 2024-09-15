@@ -3,6 +3,7 @@
 MON_DIR=~/.mon
 
 MON_CONFIG_FILE=~/.monconfig
+MONRC_FILE=~/.monrc
 
 function _() {
     # Handle multiple args for a given command
@@ -44,7 +45,7 @@ function _register() {
 
     original_cmd="$1"
     wrapper="${original_cmd}_"
-    echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MON_CONFIG_FILE &&
+    echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MONRC_FILE &&
         touch "$MON_DIR/$wrapper" &&
         echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
@@ -99,23 +100,30 @@ function _unregister() {
 
     if ! _is_registered "$wrapper"; then return 1; fi
 
-    sed -i "/$original_cmd/d" $MON_CONFIG_FILE &&
+    sed -i "/$original_cmd/d" $MONRC_FILE &&
         rm $MON_DIR/"$wrapper" &&
         echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'." &&
         echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
 }
 
 function _check() {
-    cat <(echo '============= Mon config file (~/.monconfig) =============') \
-        $MON_CONFIG_FILE <(echo -e '\n') \
+    cat <(echo '============= Mon config file (~/.monrc) =============') \
+        $MONRC_FILE <(echo -e '\n') \
         <(echo '================== Mon binary (~/.mon/) ==================') \
         <(ls -l $MON_DIR) \
         <(echo -e '\n')
 }
 
 function _edit() {
+    local editor
+    if [ -e "$MON_CONFIG_FILE" ] && [ ! -z "$(grep -oP '(?<=^editor = )\w*' $MON_CONFIG_FILE)" ]; then
+        editor="$(grep -oP '(?<=editor = )\w*' $MON_CONFIG_FILE)"
+    else
+        editor="$(which editor)"
+    fi
+
     if [ $# -eq 0 ]; then
-        editor $MON_DIR/"mon_"
+        "$editor" $MON_DIR/"mon_"
         return 0
     fi
 
@@ -125,7 +133,7 @@ function _edit() {
         paths+=($MON_DIR/"${original_cmd}_")
     done
 
-    editor "${paths[@]}"
+    "$editor" "${paths[@]}"
     return 0
 }
 
