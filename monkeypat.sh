@@ -128,6 +128,17 @@ function _edit() {
         return 0
     fi
 
+    # Quick edit .monrc and .monconfig
+    if [ $1 = "-r" ] || [ $1 = "--rc" ]; then
+        "$editor" "$MONRC_FILE"
+        return
+    fi
+    if [ $1 = "-c" ] || [ $1 = "--config" ]; then
+        "$editor" "$MON_CONFIG_FILE"
+        return
+    fi
+
+
     paths=()
 
     for original_cmd in "$@"; do
@@ -168,20 +179,28 @@ function _uninstall() {
 function _help() {
     echo "\
 Commands available:
-    register <cmd>...                  - Register commands to be wrapped with monkeypatsh.
-    patch <cmd> <sub> <code>           - Patch a sub command or option to the registered command.
-    unregister <cmd>...                - Uregister commands. Remove the wrapper and reset its behavior.
-    check                              - [DEV] Quick sanity check.
-    edit [<cmd>...]                    - Edit registered command wrapper's with your default code editor.
-                                         If you want to edit mon itself you can do \`mon edit [mon]\`
-    list [-r | --recursive] | [<cmd>]  - List all available monkeypatsh wrappers. If -r or --recursive is
-                                         used, list all wrappers and its patches. If <cmd> is used, list
-                                         all the patches added for this command.
-    uninstall                          - Uninstall monkeypatsh. Can also be run as \`bash uninstall.sh\` from
-                                         the source dir.
+    register <cmd>...                    - Register commands to be wrapped with monkeypatsh.
+    patch <cmd> <sub> <code>             - Patch a sub command or option to the registered command.
+    unregister <cmd>...                  - Uregister commands. Remove the wrapper and reset its behavior.
+    check                                - [DEV] Quick sanity check.
+    edit [<cmd>...]                      - Edit a registered command wrapper's with your preferred code editor[1].
+         | [-c | --config]                 If you want to edit mon source code itself you can do \`mon edit [mon]\`.
+         | [-r | --rc]                     You can quick edit the .monconfig file with the option -c or --config.
+                                           And you can also quick edit the .monrc file, although not recommended,
+                                           since it is automatically generated.
+    list [<cmd>]                         - List all available monkeypatsh wrappers. If -r or --recursive is
+         | [-r | --recursive]              used, list all wrappers and its patches. If <cmd> is used, list
+                                           all the patches added for this command.
+    uninstall                            - Uninstall monkeypatsh. Can also be run as \`bash uninstall.sh\` from
+                                           the source dir.
 
 Options available:
-    -h|--help                          - Show this help and exit. Can also be shown with just \`mon\`
+    -h|--help                            - Show this help and exit. Can also be shown with just \`mon\`
+
+Configuring MonkeyPatsh:
+    You can configure how MonkeyPatsh behaves tweaking configs in the ~/.monconfig file.
+
+    [1] Changing default code editor: \`editor = <editor>\`
 "
 }
 
