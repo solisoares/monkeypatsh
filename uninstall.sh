@@ -1,9 +1,9 @@
-source ./constants.sh
+source ~/.mon/.scripts/constants.sh
 
 function rm_mondir() {
     # Remove monkeypatsh executable and wrappers
     rm -rf $MON_DIR
-    echo "[MONKEYPATSH] Removed monkeypatsh binary and wrappers from $MON_DIR and this directory itself"
+    echo "[MONKEYPATSH] Removed monkeypatsh binary and wrappers from $MON_DIR and this directory itself as well as scripts"
 }
 
 function rm_monrc_file() {

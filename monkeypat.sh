@@ -4,6 +4,7 @@ MON_DIR=~/.mon
 
 MON_CONFIG_FILE=~/.monconfig
 MONRC_FILE=~/.monrc
+UNINSTALL_SCRIPT=$MON_DIR/.scripts/uninstall.sh
 
 function _() {
     # Handle multiple args for a given command
@@ -160,6 +161,10 @@ function _list() {
     fi
 }
 
+function _uninstall() {
+    bash "$UNINSTALL_SCRIPT"
+}
+
 function _help() {
     echo "\
 Commands available:
@@ -172,6 +177,8 @@ Commands available:
     list [-r | --recursive] | [<cmd>]  - List all available monkeypatsh wrappers. If -r or --recursive is
                                          used, list all wrappers and its patches. If <cmd> is used, list
                                          all the patches added for this command.
+    uninstall                          - Uninstall monkeypatsh. Can also be run as \`bash uninstall.sh\` from
+                                         the source dir.
 
 Options available:
     -h|--help                          - Show this help and exit. Can also be shown with just \`mon\`
@@ -204,6 +211,9 @@ function mon() {
         ;;
     list)
         _list "$1"
+        ;;
+    uninstall)
+        _uninstall
         ;;
     -h | --help)
         _help

@@ -1,5 +1,7 @@
 # Development source code
 MON_SOURCE=./monkeypat.sh
+MON_SOURCE_CONSTANTS=./constants.sh
+MON_SOURCE_UNINSTALL=./uninstall.sh
 
 # Directory with monkeypatsh wrappers for the registered
 # commands as well as the monkeypatsh itself (mon)
@@ -7,6 +9,8 @@ MON_DIR=~/.mon
 
 # The monkeypatsh executable
 MON_BIN=$MON_DIR/mon_
+
+MON_SCRIPTS=$MON_DIR/.scripts
 
 MON_CONFIG_FILE=~/.monconfig
 

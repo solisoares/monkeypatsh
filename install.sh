@@ -22,6 +22,14 @@ function copy_mon_bin() {
 	echo "[MONKEYPATSH] Added monkeypatsh binary to $MON_BIN"
 }
 
+function copy_scripts() {
+	# TODO: copy instead of symlinking on code release
+	mkdir -p $MON_SCRIPTS
+	ln --symbolic $(readlink -e "$MON_SOURCE_CONSTANTS") $MON_SCRIPTS/constants.sh
+	ln --symbolic $(readlink -e "$MON_SOURCE_UNINSTALL") $MON_SCRIPTS/uninstall.sh
+	echo "[MONKEYPATSH] Copied scripts to $MON_DIR/.scripts"
+}
+
 function setup_monrc_file() {
 	# Update PATH to listen at monkeypatsh bin directory first
 	if ! grep "PATH=$MON_DIR:\$PATH" $MONRC_FILE >$DEVNULL; then
@@ -52,6 +60,7 @@ function setup_shellrc_file() {
 add_monrc_file &&
 	copy_mon_bin &&
 	add_empty_monconfig_file &&
+	copy_scripts &&
 	setup_monrc_file &&
 	setup_shellrc_file &&
 	echo "[MONKEYPATSH] ✅ monkeypatsh has been installed successfully." &&
