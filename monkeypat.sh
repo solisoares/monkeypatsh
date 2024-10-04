@@ -48,6 +48,21 @@ function _register() {
     wrapper="${original_cmd}_"
     echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MONRC_FILE &&
         touch "$MON_DIR/$wrapper" &&
+        echo "\
+#!/usr/bin/bash
+
+function _default() {
+    if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
+}
+
+sub=\"\$@\"
+case \"\$sub\" in
+    *)
+        _default
+    ;;
+esac
+" >$MON_DIR/$wrapper &&
+        sudo chmod +x $MON_DIR/$wrapper &&
         echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
 
@@ -66,33 +81,21 @@ function _patch() {
 
     if ! _is_registered "$wrapper"; then return 1; fi
 
-    echo "\
-#!/usr/bin/bash
+    # ~ I am sorry, this part was also hard for me to get my head around it ~
+    # Add patch function
+    sed -i "s|#!/usr/bin/bash|#!/usr/bin/bash\\
+\\
+function _$sub() {\\
+    $code\\
+}|" $MON_DIR/$wrapper
 
-function $wrapper() {
-    sub=\"\$@\"
-    case \"\$sub\" in
-        $sub)
-            _$sub
-        ;;
-        *)
-            _default
-        ;;
-    esac
-}
+    # Add patch case
+    sed -i "s|case \"\$sub\" in|case \"\$sub\" in\\
+    $sub)\\
+        _$sub\\
+    ;;|" $MON_DIR/$wrapper
 
-function _default() {
-    if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
-}
-
-function _$sub() {
-    "$code"
-}
-
-$wrapper \"\$@\"
-" >>$MON_DIR/$wrapper &&
-        sudo chmod +x $MON_DIR/$wrapper &&
-        echo "[MONKEYPATSH] patched: $original_cmd $sub"
+    echo "[MONKEYPATSH] patched: $original_cmd $sub"
 }
 
 function _unregister() {
