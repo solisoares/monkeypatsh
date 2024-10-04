@@ -52,13 +52,19 @@ function _register() {
 #!/usr/bin/bash
 
 function _default() {
-    if which \\$original_cmd >/dev/null 2>&1; then \\$original_cmd \"\$@\"; fi
+    # This guarantee the original command still works as intended.
+    if which \\$original_cmd >/dev/null 2>&1; then 
+        if [ -z \"\$@\" ]; then
+            shift
+        fi
+        \\$original_cmd \"\$@\";
+    fi
 }
 
 sub=\"\$@\"
 case \"\$sub\" in
     *)
-        _default
+        _default \"\$sub\"
     ;;
 esac
 " >$MON_DIR/$wrapper &&
