@@ -44,7 +44,7 @@ function setup_monrc_file() {
 	echo "[MONKEYPATSH] Updated PATH to look first at $MON_DIR"
 
 	# Add monkeypatsh completions
-	echo "complete -W 'register patch unregister check edit list -h --help' mon" >>$MONRC_FILE
+	echo "complete -W 'register patch unregister check edit list uninstall -h --help' mon" >>$MONRC_FILE
 
 	# Allow original completion for existing commands
 	echo "setopt complete_aliases" >>$MONRC_FILE
