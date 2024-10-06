@@ -12,6 +12,8 @@ MON_BIN=$MON_DIR/mon_
 
 MON_SCRIPTS=$MON_DIR/.scripts
 
+MON_TEMPLATES=$MON_DIR/templates
+
 MON_CONFIG_FILE=~/.monconfig
 
 # Aliases to the wrappers and appended PATH variables

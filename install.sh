@@ -30,6 +30,12 @@ function copy_scripts() {
 	echo "[MONKEYPATSH] Copied scripts to $MON_DIR/.scripts"
 }
 
+function copy_templates() {
+	# TODO: copy instead of symlinking on code release
+	ln --symbolic $(readlink -e "./templates") $MON_DIR/templates
+	echo "[MONKEYPATSH] Copied templates to $MON_DIR/templates"
+}
+
 function setup_monrc_file() {
 	# Update PATH to listen at monkeypatsh bin directory first
 	if ! grep "PATH=$MON_DIR:\$PATH" $MONRC_FILE >$DEVNULL; then
@@ -61,6 +67,7 @@ add_monrc_file &&
 	copy_mon_bin &&
 	add_empty_monconfig_file &&
 	copy_scripts &&
+	copy_templates &&
 	setup_monrc_file &&
 	setup_shellrc_file &&
 	echo "[MONKEYPATSH] ✅ monkeypatsh has been installed successfully." &&

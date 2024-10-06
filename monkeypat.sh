@@ -6,6 +6,8 @@ MON_CONFIG_FILE=~/.monconfig
 MONRC_FILE=~/.monrc
 UNINSTALL_SCRIPT=$MON_DIR/.scripts/uninstall.sh
 
+MON_TEMPLATES=$MON_DIR/templates
+
 function _() {
     # Handle multiple args for a given command
     # This allows registering multiple monkeypatsh
@@ -47,27 +49,10 @@ function _register() {
     original_cmd="$1"
     wrapper="${original_cmd}_"
     echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MONRC_FILE &&
-        touch "$MON_DIR/$wrapper" &&
-        echo "\
-#!/usr/bin/bash
+        touch "$MON_DIR/$wrapper"
 
-function _default() {
-    # This guarantee the original command still works as intended.
-    if which \\$original_cmd >/dev/null 2>&1; then 
-        if [ -z \"\$@\" ]; then
-            shift
-        fi
-        \\$original_cmd \"\$@\";
-    fi
-}
-
-sub=\"\$@\"
-case \"\$sub\" in
-    *)
-        _default \"\$sub\"
-    ;;
-esac
-" >$MON_DIR/$wrapper &&
+    export original_cmd
+    cat "$MON_TEMPLATES/register_cmd.sh" | envsubst '${original_cmd}' >$MON_DIR/$wrapper &&
         sudo chmod +x $MON_DIR/$wrapper &&
         echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
@@ -87,21 +72,17 @@ function _patch() {
 
     if ! _is_registered "$wrapper"; then return 1; fi
 
-    # ~ I am sorry, this part was also hard for me to get my head around it ~
+    export sub code
     # Add patch function
-    sed -i "s|#!/usr/bin/bash|#!/usr/bin/bash\\
-\\
-function _$sub() {\\
-    $code\\
-}|" $MON_DIR/$wrapper
-
+    cp $MON_DIR/$wrapper './tmpfile'
+    patch_function="$(cat "$MON_TEMPLATES/patch_cmd_function.sh" | envsubst '${sub} ${code}')"
+    awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/bash/, r)}1' './tmpfile' >$MON_DIR/$wrapper
     # Add patch case
-    sed -i "s|case \"\$sub\" in|case \"\$sub\" in\\
-    $sub)\\
-        _$sub\\
-    ;;|" $MON_DIR/$wrapper
-
-    echo "[MONKEYPATSH] patched: $original_cmd $sub"
+    patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${sub}')"
+    cp $MON_DIR/$wrapper './tmpfile'
+    awk -v r="$patch_case" '{gsub(/case "\$sub_cmd" in/, r)}1' './tmpfile' >$MON_DIR/$wrapper &&
+        rm './tmpfile' &&
+        echo "[MONKEYPATSH] patched: $original_cmd $sub"
 }
 
 function _unregister() {
