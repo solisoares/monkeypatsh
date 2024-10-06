@@ -53,7 +53,7 @@ function _register() {
 
     export original_cmd
     cat "$MON_TEMPLATES/register_cmd.sh" | envsubst '${original_cmd}' >$MON_DIR/$wrapper &&
-        sudo chmod +x $MON_DIR/$wrapper &&
+        chmod +x $MON_DIR/$wrapper &&
         echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
 
