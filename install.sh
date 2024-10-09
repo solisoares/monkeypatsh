@@ -48,6 +48,11 @@ function setup_monrc_file() {
 
 	# Allow original completion for existing commands
 	echo "setopt complete_aliases" >>$MONRC_FILE
+
+	# To go to a specific line on `mon patch <cmd> <sub>` we need the name of the editor
+	echo "export EDITOR" >>$MONRC_FILE
+
+	echo "" >>$MONRC_FILE
 }
 
 function setup_shellrc_file() {

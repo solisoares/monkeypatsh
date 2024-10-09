@@ -8,6 +8,15 @@ UNINSTALL_SCRIPT=$MON_DIR/.scripts/uninstall.sh
 
 MON_TEMPLATES=$MON_DIR/templates
 
+_editor="editor"
+if [ -n "$EDITOR" ]; then
+    _editor="$(basename $EDITOR)"
+fi
+_config_editor="$(grep -oP '(?<=^editor = )\w*' $MON_CONFIG_FILE)"
+if [ -e "$MON_CONFIG_FILE" ] && [ -n "$_config_editor" ]; then
+    _editor="$_config_editor"
+fi
+
 function _() {
     # Handle multiple args for a given command
     # This allows registering multiple monkeypatsh
@@ -57,6 +66,32 @@ function _register() {
         echo "[MONKEYPATSH] Registered command '$original_cmd'"
 }
 
+function _open_file_at_line() {
+    file="$1"
+    line="$2"
+
+    if [ "$_editor" = "editor" ]; then
+        "$_editor" "$file" # well, tried
+    fi
+
+    case "$_editor" in
+    *vim | *nano | emacs)
+        "$_editor" +"$line" "$file"
+        ;;
+    code)
+        echo "$file":"$line"
+        "$_editor" --goto "$file":"$line"
+        ;;
+    kate)
+        "$_editor" --line "$line" "$file"
+        ;;
+    subl)
+        "$_editor" "$file":"$line"
+        ;;
+    esac
+
+}
+
 function _patch() {
     # Patch a sub command or option to the registered command
     original_cmd="$1"
@@ -64,25 +99,37 @@ function _patch() {
     sub="$2"
     code="$3"
 
-    if [ "$#" -ne 3 ]; then
+    if [ "$#" -lt 2 ]; then
         echo "mon: missing argument for 'patch'"
-        echo "'patch' requires exactly 3 arguments, you provided $#"
+        echo "'patch' requires at least 2 arguments, you provided $#"
         return 1
     fi
 
     if ! _is_registered "$wrapper"; then return 1; fi
 
     export sub code
+
     # Add patch function
     cp $MON_DIR/$wrapper './tmpfile'
-    patch_function="$(cat "$MON_TEMPLATES/patch_cmd_function.sh" | envsubst '${sub} ${code}')"
+    patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
+    if [ -z "$code" ]; then
+        patch_function_template="$MON_TEMPLATES/patch_cmd_function_stub.sh"
+    fi
+    patch_function="$(cat "$patch_function_template" | envsubst '${sub} ${code}')"
     awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/bash/, r)}1' './tmpfile' >$MON_DIR/$wrapper
+
     # Add patch case
     patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${sub}')"
     cp $MON_DIR/$wrapper './tmpfile'
     awk -v r="$patch_case" '{gsub(/case "\$sub_cmd" in/, r)}1' './tmpfile' >$MON_DIR/$wrapper &&
-        rm './tmpfile' &&
-        echo "[MONKEYPATSH] patched: $original_cmd $sub"
+        rm './tmpfile'
+
+    if [ -z "$code" ]; then
+        line="$(sed -n '/# put your code here/{=;q;}' $MON_DIR/$wrapper)"
+        _open_file_at_line "$MON_DIR/$wrapper" "$line"
+    fi
+
+    echo "[MONKEYPATSH] patched: $original_cmd $sub"
 }
 
 function _unregister() {
@@ -106,28 +153,20 @@ function _check() {
 }
 
 function _edit() {
-    local editor
-    if [ -e "$MON_CONFIG_FILE" ] && [ ! -z "$(grep -oP '(?<=^editor = )\w*' $MON_CONFIG_FILE)" ]; then
-        editor="$(grep -oP '(?<=editor = )\w*' $MON_CONFIG_FILE)"
-    else
-        editor="$(which editor)"
-    fi
-
     if [ $# -eq 0 ]; then
-        "$editor" $MON_DIR/"mon_"
+        "$_editor" $MON_DIR/"mon_"
         return 0
     fi
 
     # Quick edit .monrc and .monconfig
     if [ $1 = "-r" ] || [ $1 = "--rc" ]; then
-        "$editor" "$MONRC_FILE"
+        "$_editor" "$MONRC_FILE"
         return
     fi
     if [ $1 = "-c" ] || [ $1 = "--config" ]; then
-        "$editor" "$MON_CONFIG_FILE"
+        "$_editor" "$MON_CONFIG_FILE"
         return
     fi
-
 
     paths=()
 
@@ -135,7 +174,7 @@ function _edit() {
         paths+=($MON_DIR/"${original_cmd}_")
     done
 
-    "$editor" "${paths[@]}"
+    "$_editor" "${paths[@]}"
     return 0
 }
 
@@ -170,17 +209,31 @@ function _help() {
     echo "\
 Commands available:
     register <cmd>...                    - Register commands to be wrapped with monkeypatsh.
-    patch <cmd> <sub> <code>             - Patch a sub command or option to the registered command.
+
+    patch <cmd> <sub> [<code>]           - Patch a sub command or option to the registered command. There are 2 ways.
+                                           1) You can add your code inline*:
+                                              mon patch ls foo 'echo foo!!!'
+                                              mon patch ls --bar 'echo bar!!!'
+                                           2) You can summon your editor[1] and put your code there:
+                                              mon patch ls foo
+                                              mon patch ls --bar
+                                           *) Keep your inline code simple. If you want to parse arguments or your
+                                              code span multiple lines, use the second format.
+
     unregister <cmd>...                  - Uregister commands. Remove the wrapper and reset its behavior.
+
     check                                - [DEV] Quick sanity check.
+
     edit [<cmd>...]                      - Edit a registered command wrapper's with your preferred code editor[1].
          | [-c | --config]                 If you want to edit mon source code itself you can do \`mon edit [mon]\`.
          | [-r | --rc]                     You can quick edit the .monconfig file with the option -c or --config.
                                            And you can also quick edit the .monrc file, although not recommended,
                                            since it is automatically generated.
+
     list [<cmd>]                         - List all available monkeypatsh wrappers. If -r or --recursive is
          | [-r | --recursive]              used, list all wrappers and its patches. If <cmd> is used, list
                                            all the patches added for this command.
+
     uninstall                            - Uninstall monkeypatsh. Can also be run as \`bash uninstall.sh\` from
                                            the source dir.
 
