@@ -6,7 +6,12 @@ function _default() {
         if [ -z "$@" ]; then
             shift
         fi
-        \${original_cmd} "$@";
+        # Change the code bellow if you want to modify or decorate the
+        # default command. For example:
+        #   echo 'starting...'
+        #   \${original_cmd} "$@";
+        #   echo 'ending...'
+        \${original_cmd} $@;
     fi
 }
 
