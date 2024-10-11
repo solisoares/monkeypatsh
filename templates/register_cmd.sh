@@ -15,7 +15,8 @@ function _default() {
     fi
 }
 
-sub_cmd="$@"
+sub_cmd="$1"
+shift
 case "$sub_cmd" in
     *)
         _default "$sub_cmd"
