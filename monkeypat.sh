@@ -268,7 +268,7 @@ function mon() {
     check)
         _check
         ;;
-    edit)
+    e|ed|edi|edit)
         _edit "$@"
         ;;
     list)
