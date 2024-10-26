@@ -57,8 +57,10 @@ function _register() {
 
     original_cmd="$1"
     wrapper="${original_cmd}_"
-    echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MONRC_FILE &&
-        touch "$MON_DIR/$wrapper"
+    if ! _is_registered "$wrapper" >/dev/null 2>&1; then
+        echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MONRC_FILE &&
+            touch "$MON_DIR/$wrapper"
+    fi
 
     export original_cmd
     cat "$MON_TEMPLATES/register_cmd.sh" | envsubst '${original_cmd}' >$MON_DIR/$wrapper &&
