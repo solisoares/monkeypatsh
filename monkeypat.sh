@@ -271,22 +271,22 @@ function mon() {
 
     shift
     case "$mon_cmd" in
-    register)
+    r | re | reg | regi | regis | regist | registe | register)
         _ _register "$@"
         ;;
-    patch)
+    p | pa | pat | patc | patch)
         _patch "$@"
         ;;
-    unregister)
+    u | un | unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
         _ _unregister "$@"
         ;;
-    check)
+    c | ch | che | chec | check)
         _check
         ;;
-    e|ed|edi|edit)
+    e | ed | edi | edit)
         _edit "$@"
         ;;
-    list)
+    l | li | lis | list)
         _list "$1"
         ;;
     uninstall)
