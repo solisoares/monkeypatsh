@@ -37,11 +37,20 @@ function _() {
 
 }
 
+function _not_found_msg() {
+    cmd="$1"
+    not_found='command'
+    if [[ "$cmd" == -* ]]; then
+        not_found='option'
+    fi
+    echo "There is no registered $not_found named '$cmd'"
+}
+
 function _is_registered() {
     wrapper="$1"
     original_cmd="${wrapper:0:-1}" # wrappers have an underscore at the end: "<cmd>_"
     if [ ! -f "$MON_DIR/$wrapper" ]; then
-        echo "[MONKEYPATSH] There is no registered command named '$original_cmd'. Register it with 'mon register $original_cmd'"
+        _not_found_msg "$original_cmd"
         return 1
     fi
     return 0
@@ -173,8 +182,16 @@ function _edit() {
     paths=()
 
     for original_cmd in "$@"; do
-        paths+=($MON_DIR/"${original_cmd}_")
+        if _is_registered "${original_cmd}_" >/dev/null 2>&1; then
+            paths+=($MON_DIR/"${original_cmd}_")
+        else
+            _not_found_msg "$original_cmd"
+        fi
     done
+
+    if [ "${#paths[@]}" -eq 0 ]; then
+        return 1
+    fi
 
     "$_editor" "${paths[@]}"
     return 0
@@ -194,11 +211,7 @@ function _list() {
         elif [ -f "$MON_DIR/${cmd}_" ]; then
             cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function _).*(?=\()'
         else
-            not_found='registered command'
-            if [[ "$cmd" == -* ]]; then
-                not_found='option'
-            fi
-            echo "There is no $not_found named '$cmd'"
+            _not_found_msg "$cmd"
         fi
     fi
 }
