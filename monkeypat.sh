@@ -181,7 +181,7 @@ function _edit() {
 function _list() {
     cmd="$1"
     if [ -z "$cmd" ]; then
-        find $MON_DIR -type f ! -name 'mon' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
+        find $MON_DIR -type f ! -name 'mon_' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
     else
         if [ "$cmd" = "-r" ] || [ "$cmd" = "--recursive" ]; then
             cmds=$(_list)
