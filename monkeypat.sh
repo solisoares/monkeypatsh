@@ -235,7 +235,7 @@ Commands available:
                                            *) Keep your inline code simple. If you want to parse arguments or your
                                               code span multiple lines, use the second format.
 
-    unregister <cmd>...                  - Uregister commands. Remove the wrapper and reset its behavior.
+    unregister <cmd>...                  - Unregister commands. Remove the wrapper and reset its behavior.
 
     check                                - [DEV] Quick sanity check.
 
