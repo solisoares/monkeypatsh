@@ -266,7 +266,7 @@ Commands available:
     check                                - [DEV] Quick sanity check.
 
     edit [<cmd>...]                      - Edit a registered command wrapper's or a patch with your preferred code editor[1].
-         | <cmd> <sub>                     If you want to edit mon source code itself you can do \`mon edit [mon]\`.
+         | [<cmd> <sub>]                   If you want to edit mon source code itself you can do \`mon edit [mon]\`.
          | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
          | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
                                            since it is automatically generated.
