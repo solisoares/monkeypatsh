@@ -9,6 +9,9 @@ function _default() {
         #   \${original_cmd} "$@";
         #   echo 'ending...'
         \${original_cmd} "$@";
+    else
+        # Change the code bellow if you are creating a new command from scratch
+        :;
     fi
 }
 
