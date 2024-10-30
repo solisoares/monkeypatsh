@@ -103,6 +103,17 @@ function _open_file_at_line() {
 
 }
 
+function _has_patch() {
+    cmd="$1"
+    sub="$2"
+    if mon list "$cmd" | grep "$sub" >/dev/null; then
+        echo "mon: The patch '$sub' already exist"
+        echo "Change it with 'mon edit $cmd $sub'"
+        return 0
+    fi
+    return 1
+}
+
 function _patch() {
     # Patch a sub command or option to the registered command
     original_cmd="$1"
@@ -117,6 +128,8 @@ function _patch() {
     fi
 
     if ! _is_registered "$wrapper"; then return 1; fi
+
+    if _has_patch "$original_cmd" "$sub"; then return 1; fi
 
     export sub code
 
@@ -179,6 +192,19 @@ function _edit() {
         return
     fi
 
+    # Edit patch
+    if [ "$#" -eq 2 ]; then
+        cmd="$1"
+        wrapper="${cmd}_"
+        sub="$2"
+        sub_function="_$2"
+        if _has_patch "$cmd" "$sub" >/dev/null 2>&1; then
+            line=$(sed -n "/$sub_function/{=;q;}" "$MON_DIR/$wrapper")
+            _open_file_at_line "$MON_DIR/$wrapper" "$line"
+            return 0
+        fi
+    fi
+
     paths=()
 
     for original_cmd in "$@"; do
@@ -239,10 +265,10 @@ Commands available:
 
     check                                - [DEV] Quick sanity check.
 
-    edit [<cmd>...]                      - Edit a registered command wrapper's with your preferred code editor[1].
-         | [-c | --config]                 If you want to edit mon source code itself you can do \`mon edit [mon]\`.
-         | [-r | --rc]                     You can quick edit the .monconfig file with the option -c or --config.
-                                           And you can also quick edit the .monrc file, although not recommended,
+    edit [<cmd>...]                      - Edit a registered command wrapper's or a patch with your preferred code editor[1].
+         | <cmd> <sub>                     If you want to edit mon source code itself you can do \`mon edit [mon]\`.
+         | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
+         | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
                                            since it is automatically generated.
 
     list [<cmd>]                         - List all available monkeypatsh wrappers. If -r or --recursive is
