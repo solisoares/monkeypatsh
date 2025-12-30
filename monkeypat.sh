@@ -291,7 +291,7 @@ Configuring MonkeyPatsh:
 function mon() {
     mon_cmd="$1"
     if [ -z "$mon_cmd" ]; then
-        _help
+        _help | less
         return
     fi
 
@@ -319,7 +319,7 @@ function mon() {
         _uninstall
         ;;
     -h | --help)
-        _help
+        _help | less
         ;;
     *)
         echo "mon: unrecognized option '$mon_cmd'"
