@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 
+set -eE
+trap "_log --error 'Failed to install monkeypatch'" ERR
+
 source ./common.sh
 
 function add_monrc_file() {
 	# Create monkeypatsh rc file
 	touch $MONRC_FILE
-	echo "[MONKEYPATSH] Created $MONRC_FILE file"
+	_log "Created $MONRC_FILE file"
 }
 
 function add_empty_monconfig_file() {
 	echo "# Add your configs here" >>"$MON_CONFIG_FILE"
 	echo "# Lines starting with '#' are comments" >>"$MON_CONFIG_FILE"
 	echo "# editor = vim" >>"$MON_CONFIG_FILE"
-	echo "[MONKEYPATSH] Created empty "$MON_CONFIG_FILE" file"
+	_log "Created empty "$MON_CONFIG_FILE" file"
 }
 
 function copy_mon_bin() {
@@ -21,7 +24,7 @@ function copy_mon_bin() {
 	mkdir -p $MON_DIR
 	ln --symbolic $(readlink -e "$MON_SOURCE") $MON_BIN
 	chmod +x $MON_BIN
-	echo "[MONKEYPATSH] Added monkeypatsh binary to $MON_BIN"
+	_log "Added monkeypatsh binary to $MON_BIN"
 }
 
 function copy_scripts() {
@@ -29,13 +32,13 @@ function copy_scripts() {
 	mkdir -p $MON_SCRIPTS
 	ln --symbolic $(readlink -e "$MON_SOURCE_CONSTANTS") $MON_SCRIPTS/common.sh
 	ln --symbolic $(readlink -e "$MON_SOURCE_UNINSTALL") $MON_SCRIPTS/uninstall.sh
-	echo "[MONKEYPATSH] Copied scripts to $MON_DIR/.scripts"
+	_log "Copied scripts to $MON_DIR/.scripts"
 }
 
 function copy_templates() {
 	# TODO: copy instead of symlinking on code release
 	ln --symbolic $(readlink -e "./templates") $MON_DIR/templates
-	echo "[MONKEYPATSH] Copied templates to $MON_DIR/templates"
+	_log "Copied templates to $MON_DIR/templates"
 }
 
 function setup_monrc_file() {
@@ -43,7 +46,7 @@ function setup_monrc_file() {
 	if ! grep "PATH=$MON_DIR:\$PATH" $MONRC_FILE >$DEVNULL; then
 		echo "PATH=$MON_DIR:\$PATH" >>$MONRC_FILE
 	fi
-	echo "[MONKEYPATSH] Updated PATH to look first at $MON_DIR"
+	_log "Updated PATH to look first at $MON_DIR"
 
 	# Add monkeypatsh completions
 	echo "complete -W 'register patch unregister check edit list uninstall -h --help' mon" >>$MONRC_FILE
@@ -64,16 +67,15 @@ function setup_shellrc_file() {
 	# aliases up to date on each monkeypatsh registration.
 	echo "alias mon='source $MONRC_FILE > $DEVNULL && $MON_BIN'" >>$SHRC_FILE
 
-	echo "[MONKEYPATSH] Configured $SHRC_FILE file"
+	_log "Configured $SHRC_FILE file"
 }
 
-add_monrc_file &&
-	copy_mon_bin &&
-	add_empty_monconfig_file &&
-	copy_scripts &&
-	copy_templates &&
-	setup_monrc_file &&
-	setup_shellrc_file &&
-	echo "[MONKEYPATSH] ✅ monkeypatsh has been installed successfully." &&
-	echo "[MONKEYPATSH] 👉 Refresh your session and run 'mon --help'" ||
-	echo "[MONKEYPATSH] ❌ Failed to install monkeypatch"
+add_monrc_file
+copy_mon_bin
+add_empty_monconfig_file
+copy_scripts
+copy_templates
+setup_monrc_file
+setup_shellrc_file
+echo "Monkeypatsh has been installed successfully."
+echo "Refresh your session and run 'mon --help'."

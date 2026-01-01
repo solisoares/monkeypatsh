@@ -26,3 +26,18 @@ if [[ "$SHELL" =~ .*zsh.* ]]; then
 fi
 
 DEVNULL=/dev/null
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NOCOLOR='\033[0m'
+
+function _log() {
+    message="[${GREEN}OK${NOCOLOR}] $@"
+
+    if [ "$1" = '--error' ]; then
+        shift
+        message="[${RED}ERROR${NOCOLOR}] $@"
+    fi
+
+    echo -e "$message"
+}
