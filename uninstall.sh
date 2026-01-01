@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 source ~/.mon/.scripts/constants.sh
 
 function rm_mondir() {

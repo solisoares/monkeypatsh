@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 source ./constants.sh
 
 function add_monrc_file() {
