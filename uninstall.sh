@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ~/.mon/.scripts/constants.sh
+source ~/.mon/.scripts/common.sh
 
 function rm_mondir() {
     # Remove monkeypatsh executable and wrappers

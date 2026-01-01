@@ -1,6 +1,6 @@
 # Development source code
 MON_SOURCE=./monkeypat.sh
-MON_SOURCE_CONSTANTS=./constants.sh
+MON_SOURCE_CONSTANTS=./common.sh
 MON_SOURCE_UNINSTALL=./uninstall.sh
 
 # Directory with monkeypatsh wrappers for the registered

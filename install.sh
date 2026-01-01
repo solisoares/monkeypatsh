@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ./constants.sh
+source ./common.sh
 
 function add_monrc_file() {
 	# Create monkeypatsh rc file
@@ -27,7 +27,7 @@ function copy_mon_bin() {
 function copy_scripts() {
 	# TODO: copy instead of symlinking on code release
 	mkdir -p $MON_SCRIPTS
-	ln --symbolic $(readlink -e "$MON_SOURCE_CONSTANTS") $MON_SCRIPTS/constants.sh
+	ln --symbolic $(readlink -e "$MON_SOURCE_CONSTANTS") $MON_SCRIPTS/common.sh
 	ln --symbolic $(readlink -e "$MON_SOURCE_UNINSTALL") $MON_SCRIPTS/uninstall.sh
 	echo "[MONKEYPATSH] Copied scripts to $MON_DIR/.scripts"
 }
