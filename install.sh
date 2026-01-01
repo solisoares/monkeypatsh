@@ -46,9 +46,6 @@ function setup_monrc_file() {
 	# Add monkeypatsh completions
 	echo "complete -W 'register patch unregister check edit list uninstall -h --help' mon" >>$MONRC_FILE
 
-	# Allow original completion for existing commands
-	echo "setopt complete_aliases" >>$MONRC_FILE
-
 	# To go to a specific line on `mon patch <cmd> <sub>` we need the name of the editor
 	echo "export EDITOR" >>$MONRC_FILE
 

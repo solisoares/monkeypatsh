@@ -20,7 +20,9 @@ MON_CONFIG_FILE=~/.monconfig
 # This is used to avoid clutter in the shell rc file
 MONRC_FILE=~/.monrc
 
-# TODO: support any .rc file
-SHRC_FILE=~/.zshrc
+SHRC_FILE=~/.bashrc
+if [[ "$SHELL" =~ .*zsh.* ]]; then
+    SHRC_FILE=~/.zshrc
+fi
 
 DEVNULL=/dev/null
