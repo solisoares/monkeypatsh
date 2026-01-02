@@ -150,15 +150,14 @@ function _patch() {
 }
 
 function _unregister() {
-    original_cmd="$1"
-    wrapper="$1"_
+    local cmd="$1"
 
-    if ! _is_registered "$wrapper"; then return 1; fi
+    if ! _is_registered "$cmd"; then return 1; fi
 
-    sed -i "/$original_cmd/d" $MONRC_FILE &&
-        rm $MON_DIR/"$wrapper" &&
-        echo "[MONKEYPATSH] ✅ Unregistered command '$original_cmd'." &&
-        echo "[MONKEYPATSH] 👉 You may refresh your session to apply this."
+    sed -i "/$cmd/d" $MONRC_FILE &&
+        rm  "$MON_REGISTERED/$cmd" &&
+        echo "Unregistered command '$cmd'." &&
+        echo "You may refresh your session to apply this."
 }
 
 function _check() {
