@@ -1,11 +1,7 @@
-# Directory with monkeypatsh wrappers for the registered
-# commands as well as the monkeypatsh itself (mon)
 MON_DIR=~/.mon
 
-# The monkeypatsh executable
-MON_TEMPLATES=$MON_DIR/templates
-
-MON_CONFIG_FILE=~/.monconfig
+MON_TEMPLATES=$MON_DIR/_templates
+MON_REGISTERED=$MON_DIR/registered
 
 # Aliases to the wrappers and appended PATH variables
 # This is used to avoid clutter in the shell rc file
@@ -15,6 +11,8 @@ SHRC_FILE=~/.bashrc
 if [[ "$SHELL" =~ .*zsh.* ]]; then
     SHRC_FILE=~/.zshrc
 fi
+
+MON_CONFIG_FILE=~/.monconfig
 
 DEVNULL=/dev/null
 

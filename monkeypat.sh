@@ -42,10 +42,9 @@ function _not_found_msg() {
 }
 
 function _is_registered() {
-    wrapper="$1"
-    original_cmd="${wrapper:0:-1}" # wrappers have an underscore at the end: "<cmd>_"
-    if [ ! -f "$MON_DIR/$wrapper" ]; then
-        _not_found_msg "$original_cmd"
+    cmd="$1"
+    if [ ! -f "$MON_REGISTERED/$cmd" ]; then
+        _not_found_msg "$cmd"
         return 1
     fi
     return 0
@@ -59,17 +58,16 @@ function _register() {
         return 1
     fi
 
-    original_cmd="$1"
-    wrapper="${original_cmd}_"
-    if ! _is_registered "$wrapper" >/dev/null 2>&1; then
-        echo "alias $original_cmd=$MON_DIR/$wrapper" >>$MONRC_FILE &&
-            touch "$MON_DIR/$wrapper"
+    local cmd="$1"
+    if ! _is_registered "$cmd" >/dev/null 2>&1; then
+        echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE &&
+            touch "$MON_REGISTERED/$cmd"
     fi
 
-    export original_cmd
-    cat "$MON_TEMPLATES/register_cmd.sh" | envsubst '${original_cmd}' >$MON_DIR/$wrapper &&
-        chmod +x $MON_DIR/$wrapper &&
-        echo "[MONKEYPATSH] Registered command '$original_cmd'"
+    export cmd
+    cat "$MON_TEMPLATES/register_cmd.sh" | envsubst '${cmd}' >"$MON_REGISTERED/$cmd" &&
+        chmod +x "$MON_REGISTERED/$cmd" &&
+        echo "Registered command '$cmd'"
 }
 
 function _open_file_at_line() {
