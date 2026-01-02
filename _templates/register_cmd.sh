@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 function _default() {
     if which \${cmd} >/dev/null 2>&1; then
@@ -9,8 +9,8 @@ function _default() {
     fi
 }
 
-opt="$1"
-case "$opt" in
+_opt="$1"
+case "$_opt" in
 *)
     _default "$@"
     ;;

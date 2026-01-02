@@ -1,5 +1,5 @@
-case "$sub_cmd" in
-    ${sub})
+case "$_opt" in
+    ${opt})
         shift
-        _${sub} "$@"
+        _${opt} "$@"
     ;;

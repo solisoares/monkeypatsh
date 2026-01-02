@@ -1,5 +1,5 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
-function _${sub}() {
+function _${opt}() {
     ${code}
 }

@@ -108,11 +108,10 @@ function _has_patch() {
 }
 
 function _patch() {
-    # Patch a sub command or option to the registered command
-    original_cmd="$1"
-    wrapper="${1}_"
-    sub="$2"
-    code="$3"
+    # Patch an option or sub command (`opt`) to the registered command
+    local cmd="$1"
+    local opt="$2"
+    local code="$3"
 
     if [ "$#" -lt 2 ]; then
         echo "mon: missing argument for 'patch'"
@@ -120,33 +119,33 @@ function _patch() {
         return 1
     fi
 
-    if ! _is_registered "$wrapper"; then return 1; fi
+    if ! _is_registered "$cmd"; then return 1; fi
 
-    if _has_patch "$original_cmd" "$sub"; then return 1; fi
+    if _has_patch "$cmd" "$opt"; then return 1; fi
 
-    export sub code
+    export opt code
 
     # Add patch function
-    cp $MON_DIR/$wrapper './tmpfile'
+    cp "$MON_REGISTERED/$cmd"  './tmpfile'
     patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
         patch_function_template="$MON_TEMPLATES/patch_cmd_function_stub.sh"
     fi
-    patch_function="$(cat "$patch_function_template" | envsubst '${sub} ${code}')"
-    awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/bash/, r)}1' './tmpfile' >$MON_DIR/$wrapper
+    patch_function="$(cat "$patch_function_template" | envsubst '${opt} ${code}')"
+    awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$MON_REGISTERED/$cmd"
 
     # Add patch case
-    patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${sub}')"
-    cp $MON_DIR/$wrapper './tmpfile'
-    awk -v r="$patch_case" '{gsub(/case "\$sub_cmd" in/, r)}1' './tmpfile' >$MON_DIR/$wrapper &&
+    patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${opt}')"
+    cp "$MON_REGISTERED/$cmd"  './tmpfile'
+    awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$MON_REGISTERED/$cmd"  &&
         rm './tmpfile'
 
     if [ -z "$code" ]; then
-        line="$(sed -n '/# put your code here/{=;q;}' $MON_DIR/$wrapper)"
-        _open_file_at_line "$MON_DIR/$wrapper" "$line"
+        line="$(sed -n '/# put your code here/{=;q;}' "$MON_REGISTERED/$cmd")"
+        _open_file_at_line "$MON_REGISTERED/$cmd" "$line"
     fi
 
-    echo "[MONKEYPATSH] patched: $original_cmd $sub"
+    echo "Patched: $cmd $opt"
 }
 
 function _unregister() {
