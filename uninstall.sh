@@ -3,8 +3,8 @@
 set -eE
 trap "_log --error 'Failed to uninstall monkeypatch'" ERR
 
-# source ~/.mon/.scripts/common.sh
-source ./common.sh
+SOURCE_DIR="$(dirname ${BASH_SOURCE[0]})"
+source $SOURCE_DIR/common.sh
 
 function rm_mondir() {
     # Remove monkeypatsh executable and wrappers
@@ -30,8 +30,9 @@ function update_shellrc_file() {
     _log "Removed setup configs from $SHRC_FILE"
 }
 
+echo "Uninstalling monkeypatsh..."
 rm_mondir
 rm_monrc_file
 rm_monconfig_file
 update_shellrc_file
-echo "All done. Monkeypatsh has been uninstalled"
+echo "All done. Monkeypatsh has been uninstalled."

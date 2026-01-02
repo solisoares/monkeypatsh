@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 
-MON_DIR=~/.mon
-
-MON_CONFIG_FILE=~/.monconfig
-MONRC_FILE=~/.monrc
-UNINSTALL_SCRIPT=$MON_DIR/.scripts/uninstall.sh
-
-MON_TEMPLATES=$MON_DIR/templates
+SOURCE_DIR="$(dirname ${BASH_SOURCE[0]})"
+source $SOURCE_DIR/common.sh
 
 _editor="editor"
 if [ -n "$EDITOR" ]; then
@@ -243,7 +238,7 @@ function _list() {
 }
 
 function _uninstall() {
-    bash "$UNINSTALL_SCRIPT"
+    bash "$MON_DIR/uninstall.sh"
 }
 
 function _help() {
