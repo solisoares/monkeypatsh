@@ -126,7 +126,7 @@ function _patch() {
     export opt code
 
     # Add patch function
-    cp "$MON_REGISTERED/$cmd"  './tmpfile'
+    cp "$MON_REGISTERED/$cmd" './tmpfile'
     patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
         patch_function_template="$MON_TEMPLATES/patch_cmd_function_stub.sh"
@@ -136,8 +136,8 @@ function _patch() {
 
     # Add patch case
     patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${opt}')"
-    cp "$MON_REGISTERED/$cmd"  './tmpfile'
-    awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$MON_REGISTERED/$cmd"  &&
+    cp "$MON_REGISTERED/$cmd" './tmpfile'
+    awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$MON_REGISTERED/$cmd" &&
         rm './tmpfile'
 
     if [ -z "$code" ]; then
@@ -154,17 +154,20 @@ function _unregister() {
     if ! _is_registered "$cmd"; then return 1; fi
 
     sed -i "/$cmd/d" $MONRC_FILE &&
-        rm  "$MON_REGISTERED/$cmd" &&
+        rm "$MON_REGISTERED/$cmd" &&
         echo "Unregistered command '$cmd'." &&
         echo "You may refresh your session to apply this."
 }
 
 function _check() {
-    cat <(echo '============= Mon config file (~/.monrc) =============') \
-        $MONRC_FILE <(echo -e '\n') \
-        <(echo '================== Mon binary (~/.mon/) ==================') \
-        <(ls -l $MON_DIR) \
-        <(echo -e '\n')
+    echo "============= .rc file ($MONRC_FILE) ============="
+    echo -e "$(cat $MONRC_FILE)\n"
+
+    echo "============= .config file ($MON_CONFIG_FILE) ============="
+    echo -e "$(cat $MON_CONFIG_FILE)\n"
+
+    echo "============= registered ($MON_REGISTERED) ============="
+    echo -e "$(ls -l $MON_REGISTERED)\n"
 }
 
 function _edit() {
