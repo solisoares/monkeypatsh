@@ -244,7 +244,7 @@ function _uninstall() {
 }
 
 function _help() {
-    echo "\
+	cat <<'EOF'
 Commands available:
     register <cmd>...                    - Register commands to be wrapped with monkeypatsh.
 
@@ -263,7 +263,7 @@ Commands available:
     check                                - [DEV] Quick sanity check.
 
     edit [<cmd>...]                      - Edit a registered command wrapper's or a patch with your preferred code editor[1].
-         | [<cmd> <sub>]                   If you want to edit mon source code itself you can do \`mon edit [mon]\`.
+         | [<cmd> <sub>]                   If you want to edit mon source code itself you can do `mon edit [mon]`.
          | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
          | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
                                            since it is automatically generated.
@@ -272,17 +272,18 @@ Commands available:
          | [-r | --recursive]              used, list all wrappers and its patches. If <cmd> is used, list
                                            all the patches added for this command.
 
-    uninstall                            - Uninstall monkeypatsh. Can also be run as \`bash uninstall.sh\` from
+    uninstall                            - Uninstall monkeypatsh. Can also be run as `bash uninstall.sh` from
                                            the source dir.
 
 Options available:
-    -h|--help                            - Show this help and exit. Can also be shown with just \`mon\`
+    -h|--help                            - Show this help and exit. Can also be shown with just `mon`
 
 Configuring MonkeyPatsh:
     You can configure how MonkeyPatsh behaves tweaking configs in the ~/.monconfig file.
 
-    [1] Changing default code editor: \`editor = <editor>\`
-"
+    [1] Changing default code editor: `editor = <editor>`
+
+EOF
 }
 
 function mon() {
