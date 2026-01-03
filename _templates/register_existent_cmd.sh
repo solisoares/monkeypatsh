@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function _default() {
-    : # add here default execution
+	\${cmd} "$@" # default execution
 }
 
 _opt="$1"

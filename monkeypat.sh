@@ -65,7 +65,13 @@ function _register() {
     fi
 
     export cmd
-    cat "$MON_TEMPLATES/register_cmd.sh" | envsubst '${cmd}' >"$MON_REGISTERED/$cmd" &&
+
+    local register_template="$MON_TEMPLATES/register_cmd.sh"
+    if which "$cmd" >/dev/null; then
+        register_template="$MON_TEMPLATES/register_existent_cmd.sh"
+    fi
+
+    cat "$register_template" | envsubst '${cmd}' >"$MON_REGISTERED/$cmd" &&
         chmod +x "$MON_REGISTERED/$cmd" &&
         echo "Registered command '$cmd'"
 }
@@ -171,7 +177,7 @@ function _check() {
 }
 
 function _edit() {
-	# Quick edit monkeypatsh itself
+    # Quick edit monkeypatsh itself
     if [ $# -eq 0 ] || [ $1 = 'mon' ]; then
         "$_editor" "$MON_DIR/monkeypat.sh"
         return 0
@@ -200,8 +206,8 @@ function _edit() {
     fi
 
     local paths=()
-	local cmds="$@"
-	local cmd
+    local cmds="$@"
+    local cmd
 
     for cmd in $cmds; do
         if _is_registered "$cmd" >/dev/null 2>&1; then
@@ -226,7 +232,7 @@ function _list() {
     else
         if [ "$cmd" = "-r" ] || [ "$cmd" = "--recursive" ]; then
             local cmds=$(_list)
-			local _cmd
+            local _cmd
             for _cmd in $cmds; do
                 echo "$_cmd:"
                 _list "$_cmd" | xargs -I {} echo "  " {}
@@ -244,7 +250,7 @@ function _uninstall() {
 }
 
 function _help() {
-	cat <<'EOF'
+    cat <<'EOF'
 Commands available:
     register <cmd>...                    - Register commands to be wrapped with monkeypatsh.
 
