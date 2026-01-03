@@ -99,7 +99,7 @@ function _open_file_at_line() {
 function _has_patch() {
     cmd="$1"
     sub="$2"
-    if mon list "$cmd" | grep "$sub" >/dev/null; then
+    if _list "$cmd" | grep "$sub" >/dev/null; then
         echo "mon: The patch '$sub' already exist"
         echo "Change it with 'mon edit $cmd $sub'"
         return 0
@@ -171,41 +171,43 @@ function _check() {
 }
 
 function _edit() {
-    if [ $# -eq 0 ]; then
-        "$_editor" $MON_DIR/"mon_"
+	# Quick edit monkeypatsh itself
+    if [ $# -eq 0 ] || [ $1 = 'mon' ]; then
+        "$_editor" "$MON_DIR/monkeypat.sh"
         return 0
     fi
 
     # Quick edit .monrc and .monconfig
     if [ $1 = "-r" ] || [ $1 = "--rc" ]; then
         "$_editor" "$MONRC_FILE"
-        return
+        return 0
     fi
     if [ $1 = "-c" ] || [ $1 = "--config" ]; then
         "$_editor" "$MON_CONFIG_FILE"
-        return
+        return 0
     fi
 
     # Edit patch
     if [ "$#" -eq 2 ]; then
-        cmd="$1"
-        wrapper="${cmd}_"
-        sub="$2"
-        sub_function="_$2"
-        if _has_patch "$cmd" "$sub" >/dev/null 2>&1; then
-            line=$(sed -n "/$sub_function/{=;q;}" "$MON_DIR/$wrapper")
-            _open_file_at_line "$MON_DIR/$wrapper" "$line"
+        local cmd="$1"
+        local opt="$2"
+        local opt_function="_$opt"
+        if _has_patch "$cmd" "$opt" >/dev/null 2>&1; then
+            local line=$(sed -n "/$opt_function/{=;q;}" "$MON_REGISTERED/$cmd")
+            _open_file_at_line "$MON_REGISTERED/$cmd" "$line"
             return 0
         fi
     fi
 
-    paths=()
+    local paths=()
+	local cmds="$@"
+	local cmd
 
-    for original_cmd in "$@"; do
-        if _is_registered "${original_cmd}_" >/dev/null 2>&1; then
-            paths+=($MON_DIR/"${original_cmd}_")
+    for cmd in $cmds; do
+        if _is_registered "$cmd" >/dev/null 2>&1; then
+            paths+=("$MON_REGISTERED/$cmd")
         else
-            _not_found_msg "$original_cmd"
+            _not_found_msg "$cmd"
         fi
     done
 
