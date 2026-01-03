@@ -249,6 +249,49 @@ function _uninstall() {
     bash "$MON_DIR/uninstall.sh"
 }
 
+function _backup() {
+    local backup_dir=~/.mon.bak/
+
+    if [[ $# -eq 2 ]] && [[ "$1" = '-d' || "$1" = '--dir' ]]; then
+        backup_dir="$2"
+        if [ "${backup_dir:0:1}" = '~' ]; then
+            backup_dir="${2/'~'/$HOME}" # replaces leading '~' for $HOME
+        fi
+    fi
+
+    if [ -d "$backup_dir" ]; then
+        echo "There is already a backup at '$backup_dir'"
+
+        local overwrite
+        read -p "Overwrite? (y/N): " overwrite
+        overwrite="${overwrite:-n}"
+        if [[ "$overwrite" =~ .*[nN].* ]]; then
+            echo "To restore run: \`mon restore $backup_dir\`"
+            return 1
+        fi
+    fi
+
+    mkdir -p "$backup_dir"
+    cp -r "$MONRC_FILE" "$MON_CONFIG_FILE" "$MON_REGISTERED" "$backup_dir"
+
+    echo "Backed up monkeypatsh at '$backup_dir'"
+    echo "To restore run: \`mon restore $backup_dir\`"
+}
+
+function _restore() {
+    if [ $# -eq 0 ]; then
+        echo "mon: missing argument for 'restore'"
+        echo "'restore' requires the backup directory: \`mon restore <dir.bak>\`"
+        return 1
+    fi
+
+    local backup_dir="$1"
+    cp "$backup_dir/.monrc" "$MONRC_FILE"
+    cp "$backup_dir/.monconfig" "$MON_CONFIG_FILE"
+    cp -r "$backup_dir/registered" "$MON_DIR"
+
+}
+
 function _help() {
     cat <<'EOF'
 Commands available:
@@ -281,6 +324,10 @@ Commands available:
     uninstall                            - Uninstall monkeypatsh. Can also be run as `bash uninstall.sh` from
                                            the source dir.
 
+    backup
+
+    restore
+
 Options available:
     -h|--help                            - Show this help and exit. Can also be shown with just `mon`
 
@@ -301,26 +348,32 @@ function mon() {
 
     shift
     case "$mon_cmd" in
-    r | re | reg | regi | regis | regist | registe | register)
+    reg | regi | regis | regist | registe | register)
         _ _register "$@"
         ;;
-    p | pa | pat | patc | patch)
+    pat | patc | patch)
         _patch "$@"
         ;;
-    u | un | unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
+    unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
         _ _unregister "$@"
         ;;
-    c | ch | che | chec | check)
+    che | chec | check)
         _check
         ;;
-    e | ed | edi | edit)
+    edi | edit)
         _edit "$@"
         ;;
-    l | li | lis | list)
+    lis | list)
         _list "$1"
         ;;
-    uninstall)
-        _uninstall
+    uni | unin | unins | uninst | uninsta | uninstal | uninstall)
+        # _uninstall
+        ;;
+    bac | back | backu | backup)
+        _backup "$@"
+        ;;
+    res | rest | resto | restor | restore)
+        _restore "$@"
         ;;
     -h | --help)
         _help | less

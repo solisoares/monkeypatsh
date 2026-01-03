@@ -4,7 +4,7 @@ set -eE
 trap "_log --error 'Failed to install monkeypatch'" ERR
 
 SOURCE_DIR="$(dirname ${BASH_SOURCE[0]})"
-source $SOURCE_DIR/common.sh
+source "$SOURCE_DIR/common.sh"
 
 function copy_source_code() {
     rsync -a --exclude='.git' "$SOURCE_DIR/" "$MON_DIR"
@@ -17,23 +17,19 @@ function copy_source_code() {
 }
 
 function setup_monrc_file() {
-    # # Update PATH to listen at monkeypatsh bin first
-    # if ! grep "PATH=$TGT_DIR:\$PATH" $MONRC_FILE >$DEVNULL; then
-    #     echo "PATH=$TGT_DIR:\$PATH" >>$MONRC_FILE
-    # fi
-    # _log "Updated PATH to look first at $TGT_DIR"
-
     # Create monkeypatsh rc file
-    touch $MONRC_FILE
-    _log "Created $MONRC_FILE file"
+    touch "$MONRC_FILE"
+    _log "Created "$MONRC_FILE" file"
 
     # Add monkeypatsh completions
-    echo "complete -W 'register patch unregister check edit list uninstall -h --help' mon" >>$MONRC_FILE
+    echo "complete -W 'register patch unregister check edit list uninstall backup restore -h --help' mon" >>"$MONRC_FILE"
 
     # To go to a specific line on `mon patch <cmd> <sub>` we need the name of the editor
-    echo "export EDITOR" >>$MONRC_FILE
+    echo "export EDITOR" >>"$MONRC_FILE"
 
-    echo "" >>$MONRC_FILE
+    # echo "export MON_DIR=$MON_DIR" >>"$MONRC_FILE"
+
+    echo "" >>"$MONRC_FILE"
 }
 
 function add_monconfig_file() {
@@ -47,18 +43,18 @@ function add_monconfig_file() {
 }
 
 function setup_shellrc_file() {
-    echo "# Source monkeypatsh" >>$SHRC_FILE
+    echo "# Source monkeypatsh" >>"$SHRC_FILE"
 
     # Since the the aliases definition and PATH variables are in the monkeypatsh rc file
     # and not in the shell rc file, always source it on start up
-    echo source $MONRC_FILE >>$SHRC_FILE
+    echo source "$MONRC_FILE" >>"$SHRC_FILE"
 
     # Monkeypatsh is itself an alias.
     # Each call to `mon` sources the monkeypatsh rc file to make commands
     # aliases up to date on each monkeypatsh registration.
-    echo "alias mon='source $MONRC_FILE > $DEVNULL && $MON_DIR/monkeypat.sh'" >>$SHRC_FILE
+    echo "alias mon='source "$MONRC_FILE" > $DEVNULL && $MON_DIR/monkeypat.sh'" >>"$SHRC_FILE"
 
-    _log "Configured $SHRC_FILE file"
+    _log "Configured "$SHRC_FILE" file"
 
 }
 
