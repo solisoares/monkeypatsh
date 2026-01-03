@@ -218,18 +218,19 @@ function _edit() {
 }
 
 function _list() {
-    cmd="$1"
+    local cmd="$1"
     if [ -z "$cmd" ]; then
-        find $MON_DIR -type f ! -name 'mon_' | xargs -I {} basename {} | cut -d '_' -f 1 | sort
+        find "$MON_REGISTERED" -type f | xargs -I {} basename {} | sort
     else
         if [ "$cmd" = "-r" ] || [ "$cmd" = "--recursive" ]; then
-            cmds=$(_list)
-            for cmd_ in $cmds; do
-                echo "$cmd_:"
-                _list "$cmd_" | xargs -I {} echo "  " {}
+            local cmds=$(_list)
+			local _cmd
+            for _cmd in $cmds; do
+                echo "$_cmd:"
+                _list "$_cmd" | xargs -I {} echo "  " {}
             done
-        elif [ -f "$MON_DIR/${cmd}_" ]; then
-            cat "$MON_DIR/${cmd}_" | grep -oP '(?<=function _).*(?=\()'
+        elif [ -f "$MON_REGISTERED/$cmd" ]; then
+            cat "$MON_REGISTERED/$cmd" | grep -oP '(?<=function _).*(?=\()'
         else
             _not_found_msg "$cmd"
         fi
