@@ -250,46 +250,67 @@ function _uninstall() {
 }
 
 function _backup() {
-    local backup_dir=~/.mon.bak/
+    local backup_file=~/.mon.bak.tar
 
-    if [[ $# -eq 2 ]] && [[ "$1" = '-d' || "$1" = '--dir' ]]; then
-        backup_dir="$2"
-        if [ "${backup_dir:0:1}" = '~' ]; then
-            backup_dir="${2/'~'/$HOME}" # replaces leading '~' for $HOME
+    if [[ $# -eq 2 ]] && [[ "$1" = '-f' || "$1" = '--file' ]]; then
+        backup_file="$2"
+        if [ "${backup_file:0:1}" = '~' ]; then
+            backup_file="${2/'~'/$HOME}" # replaces leading '~' for $HOME
         fi
     fi
 
-    if [ -d "$backup_dir" ]; then
-        echo "There is already a backup at '$backup_dir'"
+    if [ -f "$backup_file" ]; then
+        echo "There is already a backup at '$backup_file'"
 
         local overwrite
         read -p "Overwrite? (y/N): " overwrite
         overwrite="${overwrite:-n}"
         if [[ "$overwrite" =~ .*[nN].* ]]; then
-            echo "To restore run: \`mon restore $backup_dir\`"
+            echo "To restore run: \`mon restore $backup_file\`"
             return 1
         fi
     fi
 
-    mkdir -p "$backup_dir"
-    cp -r "$MONRC_FILE" "$MON_CONFIG_FILE" "$MON_REGISTERED" "$backup_dir"
+    local mon_rc="$(basename $MONRC_FILE)"
+    local mon_config="$(basename $MON_CONFIG_FILE)"
+    local mon_registered="$(basename $MON_DIR)/$(basename $MON_REGISTERED)"
 
-    echo "Backed up monkeypatsh at '$backup_dir'"
-    echo "To restore run: \`mon restore $backup_dir\`"
+    # Contents of the <backup> file:
+    # 	.monrc
+    # 	.monconfig
+    # 	registered/
+    # 	registered/<cmd_1>
+    #   ...
+    # 	registered/<cmd_n>
+    tar -cf "$backup_file" -C ~ "$mon_rc" "$mon_config"
+    tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_REGISTERED)" >/dev/null 2>&1
+
+    echo "Backed up monkeypatsh."
+    echo "To restore run: \`mon restore $backup_file\`"
 }
 
 function _restore() {
     if [ $# -eq 0 ]; then
         echo "mon: missing argument for 'restore'"
-        echo "'restore' requires the backup directory: \`mon restore <dir.bak>\`"
+        echo "'restore' requires a backup file: \`mon restore <file.bak.tar>\`"
         return 1
     fi
 
-    local backup_dir="$1"
-    cp "$backup_dir/.monrc" "$MONRC_FILE"
-    cp "$backup_dir/.monconfig" "$MON_CONFIG_FILE"
-    cp -r "$backup_dir/registered" "$MON_DIR"
+    local backup_file="$1"
 
+    local tmp_dir="$(mktemp -d)"
+    local mon_rc_bak="$tmp_dir/$(basename $MONRC_FILE)"
+    local mon_config_bak="$tmp_dir/$(basename $MON_CONFIG_FILE)"
+    local mon_registered_bak="$tmp_dir/$(basename $MON_REGISTERED)"
+
+    tar -xf "$backup_file" -C "$tmp_dir"
+
+    cp "$mon_rc_bak" "$MONRC_FILE"
+    cp "$mon_config_bak" "$MON_CONFIG_FILE"
+    cp -r "$mon_registered_bak"/* "$MON_REGISTERED"
+
+    echo "Restored monkeypatsh configuration."
+    echo "Refresh your session to use any restored commands."
 }
 
 function _help() {
@@ -324,15 +345,16 @@ Commands available:
     uninstall                            - Uninstall monkeypatsh. Can also be run as `bash uninstall.sh` from
                                            the source dir.
 
-    backup
+    backup [-f | --file <backup>]        - Backup monkeypatsh into a restorable file.
+	                                       If -f or --file is not provided, backups into ~/.mon.bak.tar
 
-    restore
+    restore <backup>                     - Restore monkeypatsh from file.
 
 Options available:
     -h|--help                            - Show this help and exit. Can also be shown with just `mon`
 
-Configuring MonkeyPatsh:
-    You can configure how MonkeyPatsh behaves tweaking configs in the ~/.monconfig file.
+Configuring monkeypatsh:
+    You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file.
 
     [1] Changing default code editor: `editor = <editor>`
 
