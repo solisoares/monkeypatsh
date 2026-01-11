@@ -19,17 +19,14 @@ function copy_source_code() {
 function setup_monrc_file() {
     # Create monkeypatsh rc file
     touch "$MONRC_FILE"
-    _log "Created "$MONRC_FILE" file"
-
-    # Add monkeypatsh completions
-    echo "complete -W 'register patch unregister check edit list uninstall backup restore -h --help' mon" >>"$MONRC_FILE"
-
-    # To go to a specific line on `mon patch <cmd> <sub>` we need the name of the editor
     echo "export EDITOR" >>"$MONRC_FILE"
 
-    # echo "export MON_DIR=$MON_DIR" >>"$MONRC_FILE"
+    # Source completions
+    echo "if [ -d $MON_COMPLETIONS ]; then source <(cat $MON_COMPLETIONS/*); fi" >>"$MONRC_FILE"
 
     echo "" >>"$MONRC_FILE"
+
+    _log "Created "$MONRC_FILE" file"
 }
 
 function add_monconfig_file() {
@@ -47,11 +44,11 @@ function setup_shellrc_file() {
 
     # Since the the aliases definition and PATH variables are in the monkeypatsh rc file
     # and not in the shell rc file, always source it on start up
-    echo source "$MONRC_FILE" >>"$SHRC_FILE"
+    echo "if [ -f $MONRC_FILE ]; then source $MONRC_FILE; fi" >>"$SHRC_FILE"
 
     # Monkeypatsh is itself an alias.
     # Each call to `mon` sources the monkeypatsh rc file to make commands
-    # aliases up to date on each monkeypatsh registration.
+    # aliases up to date on each monkeypatsh registration and patch.
     echo "alias mon='source "$MONRC_FILE" > $DEVNULL && $MON_DIR/monkeypat.sh'" >>"$SHRC_FILE"
 
     _log "Configured "$SHRC_FILE" file"

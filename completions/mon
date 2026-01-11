@@ -1,0 +1,72 @@
+_mon_completion() {
+    local word1="${COMP_WORDS[1]}"
+    local word2="${COMP_WORDS[2]}"
+    local word3="${COMP_WORDS[3]}"
+
+    local length="${#COMP_WORDS[@]}"
+    local cur="${COMP_WORDS[$COMP_CWORD]}"
+    local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
+
+    COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore -h --help' -- "$word1"))
+
+    if [[ "$word1" = 'register' && "$length" -gt 2 ]]; then
+        COMPREPLY=()
+
+    elif [[ "$word1" = 'patch' && "$length" -gt 2 ]]; then
+        local registered="$(mon list)"
+        COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+        if [ "$length" -gt 3 ]; then
+            COMPREPLY=()
+        fi
+
+    elif [[ "$word1" = 'unregister' && "$length" -gt 2 ]]; then
+        local registered="$(mon list)"
+        COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+        if [ "$length" -gt 3 ]; then
+            COMPREPLY=()
+        fi
+
+    elif [[ "$word1" = 'check' && "$length" -gt 2 ]]; then
+        COMPREPLY=()
+
+    elif [[ "$word1" = 'edit' && "$length" -gt 2 ]]; then
+        local registered="$(mon list)"
+        COMPREPLY=($(compgen -W "$registered -c --config -r --rc" -- "$cur"))
+        if [ "$length" -gt 3 ]; then
+            if [[ "$prev" =~ ^- ]]; then
+                COMPREPLY=()
+            else
+                local patched="$(mon list ${COMP_WORDS[2]})"
+                COMPREPLY=($(compgen -W "$patched" -- "$cur"))
+            fi
+        fi
+        if [ "$length" -gt 4 ]; then
+            COMPREPLY=()
+        fi
+
+    elif [[ "$word1" = 'list' && "$length" -gt 2 ]]; then
+        local registered="$(mon list)"
+        COMPREPLY=($(compgen -W "$registered -r --recursive" -- "$cur"))
+        if [ "$length" -gt 3 ]; then
+            COMPREPLY=()
+        fi
+
+    elif [[ "$word1" = 'backup' && "$length" -gt 2 ]]; then
+        COMPREPLY=($(compgen -W '-f --file' -- "$cur"))
+        if [ "$length" -gt 3 ]; then
+            COMPREPLY=($(compgen -f -- "$cur"))
+        fi
+        if [ "$length" -gt 4 ]; then
+            COMPREPLY=()
+        fi
+
+    elif [[ "$word1" = 'restore' && "$length" -gt 2 ]]; then
+        COMPREPLY=($(compgen -f -- "$cur"))
+        if [ "$length" -gt 3 ]; then
+            COMPREPLY=()
+        fi
+    fi
+
+}
+
+complete -o nosort -F _mon_completion mon

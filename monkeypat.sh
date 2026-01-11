@@ -21,8 +21,8 @@ function _() {
 
     shift
     if [ "$#" -eq 0 ]; then
-        echo "mon: missing argument for '${cmd:2}'"
-        echo "'${cmd:2}' requires at least 1 argument, you didn't provided one"
+        echo "mon: missing argument for '${cmd:1}'"
+        echo "'${cmd:1}' requires at least 1 argument, you didn't provided one"
         return 1
     fi
 
@@ -51,7 +51,8 @@ function _is_registered() {
 }
 
 function _register() {
-    # Register a command to be wrapped with monkeypatsh
+    # Wrap command with monkeypatsh
+
     if [ "$#" -eq 0 ]; then
         echo "mon: missing argument for 'register'"
         echo "'register' requires at least 1 argument, you provided $#"
@@ -60,12 +61,13 @@ function _register() {
 
     local cmd="$1"
     if ! _is_registered "$cmd" >/dev/null 2>&1; then
-        echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE &&
-            touch "$MON_REGISTERED/$cmd"
+        echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE
+        touch "$MON_REGISTERED/$cmd"
     fi
 
     export cmd
 
+    # Wrapper template
     local register_template="$MON_TEMPLATES/register_cmd.sh"
     if which "$cmd" >/dev/null; then
         register_template="$MON_TEMPLATES/register_existent_cmd.sh"
@@ -74,6 +76,11 @@ function _register() {
     cat "$register_template" | envsubst '${cmd}' >"$MON_REGISTERED/$cmd" &&
         chmod +x "$MON_REGISTERED/$cmd" &&
         echo "Registered command '$cmd'"
+
+    # Completion template
+    local completion_template="$MON_TEMPLATES/completion.sh"
+    cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
+
 }
 
 function _open_file_at_line() {
@@ -161,6 +168,7 @@ function _unregister() {
 
     sed -i "/$cmd/d" $MONRC_FILE &&
         rm "$MON_REGISTERED/$cmd" &&
+		rm "$MON_COMPLETIONS/$cmd" &&
         echo "Unregistered command '$cmd'." &&
         echo "You may refresh your session to apply this."
 }
@@ -238,7 +246,7 @@ function _list() {
                 _list "$_cmd" | xargs -I {} echo "  " {}
             done
         elif [ -f "$MON_REGISTERED/$cmd" ]; then
-            cat "$MON_REGISTERED/$cmd" | grep -oP '(?<=function _).*(?=\()'
+            cat "$MON_REGISTERED/$cmd" | grep -oP '(?<=function _).*(?=\()' | grep -v 'default'
         else
             _not_found_msg "$cmd"
         fi
@@ -279,11 +287,15 @@ function _backup() {
     # 	.monrc
     # 	.monconfig
     # 	registered/
-    # 	registered/<cmd_1>
-    #   ...
-    # 	registered/<cmd_n>
+    # 		\_ <cmd_1>
+    # 		\_ ...
+    #   completions/
+	#		\_ mon
+    # 		\_ <cmd_1>
+    # 		\_ ...
     tar -cf "$backup_file" -C ~ "$mon_rc" "$mon_config"
     tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_REGISTERED)" >/dev/null 2>&1
+    tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_COMPLETIONS)" >/dev/null 2>&1
 
     echo "Backed up monkeypatsh."
     echo "To restore run: \`mon restore $backup_file\`"
@@ -302,12 +314,14 @@ function _restore() {
     local mon_rc_bak="$tmp_dir/$(basename $MONRC_FILE)"
     local mon_config_bak="$tmp_dir/$(basename $MON_CONFIG_FILE)"
     local mon_registered_bak="$tmp_dir/$(basename $MON_REGISTERED)"
+    local mon_completions_bak="$tmp_dir/$(basename $MON_COMPLETIONS)"
 
     tar -xf "$backup_file" -C "$tmp_dir"
 
     cp "$mon_rc_bak" "$MONRC_FILE"
     cp "$mon_config_bak" "$MON_CONFIG_FILE"
     cp -r "$mon_registered_bak"/* "$MON_REGISTERED"
+    cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
 
     echo "Restored monkeypatsh configuration."
     echo "Refresh your session to use any restored commands."
