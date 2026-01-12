@@ -80,9 +80,9 @@ function _register() {
     # Completion template
     local completion_template="$MON_TEMPLATES/completion.sh"
     if ! which "$cmd" >/dev/null; then
-		# add completion only for new commands for now
-		cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
-	fi
+        # add completion only for new commands for now
+        cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
+    fi
 
 }
 
@@ -171,7 +171,7 @@ function _unregister() {
 
     sed -i "/$cmd/d" $MONRC_FILE &&
         rm "$MON_REGISTERED/$cmd" &&
-		rm "$MON_COMPLETIONS/$cmd" &&
+        rm "$MON_COMPLETIONS/$cmd" &&
         echo "Unregistered command '$cmd'." &&
         echo "You may refresh your session to apply this."
 }
@@ -185,6 +185,9 @@ function _check() {
 
     echo "============= registered ($MON_REGISTERED) ============="
     echo -e "$(ls -l $MON_REGISTERED)\n"
+
+    echo "============= completions ($MON_COMPLETIONS) ============="
+    echo -e "$(ls -l $MON_COMPLETIONS)\n"
 }
 
 function _edit() {
@@ -293,7 +296,7 @@ function _backup() {
     # 		\_ <cmd_1>
     # 		\_ ...
     #   completions/
-	#		\_ mon
+    #		\_ mon
     # 		\_ <cmd_1>
     # 		\_ ...
     tar -cf "$backup_file" -C ~ "$mon_rc" "$mon_config"
