@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SOURCE_DIR="$(dirname ${BASH_SOURCE[0]})"
+SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source $SOURCE_DIR/common.sh
 
 _editor="editor"
@@ -409,7 +409,7 @@ function mon() {
         _list "$1"
         ;;
     uni | unin | unins | uninst | uninsta | uninstal | uninstall)
-        # _uninstall
+        _uninstall
         ;;
     bac | back | backu | backup)
         _backup "$@"

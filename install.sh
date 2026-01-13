@@ -3,16 +3,26 @@
 set -eE
 trap "_log --error 'Failed to install monkeypatch'" ERR
 
-SOURCE_DIR="$(dirname ${BASH_SOURCE[0]})"
+SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source "$SOURCE_DIR/common.sh"
 
 function copy_source_code() {
-    rsync -a --exclude='.git' "$SOURCE_DIR/" "$MON_DIR"
+	local msg
+
+    if [ "$devmode" -eq 1 ]; then
+        # Dev install: symlink source
+        ln -s "$SOURCE_DIR/" "$MON_DIR"
+		msg="Symlinked source code to $MON_DIR"
+    else
+        # Normal install: copy source
+        rsync -a --exclude='.git' "$SOURCE_DIR/" "$MON_DIR"
+		msg="Copied source code to $MON_DIR"
+    fi
 
     # Add `registered` directory
-    mkdir "$MON_DIR/registered"
+    mkdir "$MON_REGISTERED"
 
-    _log "Copied source code to $MON_DIR"
+    _log "$msg"
 
 }
 
@@ -36,7 +46,7 @@ function add_monconfig_file() {
 	# editor = vim
 	EOF
 
-    _log "Created empty "$MON_CONFIG_FILE" file"
+    _log "Created "$MON_CONFIG_FILE" file"
 }
 
 function setup_shellrc_file() {
@@ -54,6 +64,11 @@ function setup_shellrc_file() {
     _log "Configured "$SHRC_FILE" file"
 
 }
+
+devmode=0
+if [ "$1" = '--dev' ]; then
+    devmode=1
+fi
 
 echo "Installing monkeypatsh..."
 copy_source_code
