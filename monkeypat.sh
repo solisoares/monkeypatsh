@@ -115,9 +115,9 @@ function _open_file_at_line() {
 function _has_patch() {
     cmd="$1"
     sub="$2"
-    if _list "$cmd" | grep "$sub" >/dev/null; then
+    if _list "$cmd" | grep -- "$sub" >/dev/null; then
         echo "mon: The patch '$sub' already exist"
-        echo "Change it with 'mon edit $cmd $sub'"
+        echo "Edit with 'mon edit $cmd $sub'"
         return 0
     fi
     return 1
