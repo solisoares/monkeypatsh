@@ -1,2 +1,6 @@
 tmp/
+
 registered/
+
+completions/*
+!completions/mon
