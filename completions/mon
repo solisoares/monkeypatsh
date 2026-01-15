@@ -1,38 +1,40 @@
 _mon_completion() {
     local word1="${COMP_WORDS[1]}"
-    local word2="${COMP_WORDS[2]}"
-    local word3="${COMP_WORDS[3]}"
 
     local length="${#COMP_WORDS[@]}"
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
 
-    COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore -h --help' -- "$word1"))
+    COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore -h --help' -- "$cur"))
 
-    if [[ "$word1" = 'register' && "$length" -gt 2 ]]; then
+    if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then
         COMPREPLY=()
 
-    elif [[ "$word1" = 'patch' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'patch' && "$length" -ge 3 ]]; then
         local registered="$(mon list)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
-        if [ "$length" -gt 3 ]; then
+        if [ "$length" -ge 4 ]; then
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'unregister' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'unregister' && "$length" -ge 3 ]]; then
         local registered="$(mon list)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
-        if [ "$length" -gt 3 ]; then
+        if [ "$length" -ge 4 ]; then
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'check' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'check' && "$length" -ge 3 ]]; then
         COMPREPLY=()
 
-    elif [[ "$word1" = 'edit' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'edit' && "$length" -ge 3 ]]; then
         local registered="$(mon list)"
-        COMPREPLY=($(compgen -W "$registered -c --config -r --rc" -- "$cur"))
-        if [ "$length" -gt 3 ]; then
+		if [[ "$cur" =~ ^- ]]; then
+			COMPREPLY=($(compgen -W " -c --config -r --rc" -- "$cur"))
+		else
+			COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+		fi
+        if [ "$length" -ge 4 ]; then
             if [[ "$prev" =~ ^- ]]; then
                 COMPREPLY=()
             else
@@ -40,29 +42,33 @@ _mon_completion() {
                 COMPREPLY=($(compgen -W "$patched" -- "$cur"))
             fi
         fi
-        if [ "$length" -gt 4 ]; then
+        if [ "$length" -ge 5 ]; then
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'list' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'list' && "$length" -ge 3 ]]; then
         local registered="$(mon list)"
-        COMPREPLY=($(compgen -W "$registered -r --recursive" -- "$cur"))
-        if [ "$length" -gt 3 ]; then
+		if [[ "$cur" =~ ^- ]]; then
+			COMPREPLY=($(compgen -W "-r --recursive" -- "$cur"))
+		else
+			COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+		fi
+        if [ "$length" -ge 4 ]; then
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'backup' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'backup' && "$length" -ge 3 ]]; then
         COMPREPLY=($(compgen -W '-f --file' -- "$cur"))
-        if [ "$length" -gt 3 ]; then
+        if [ "$length" -ge 4 ]; then
             COMPREPLY=($(compgen -f -- "$cur"))
         fi
-        if [ "$length" -gt 4 ]; then
+        if [ "$length" -ge 5 ]; then
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'restore' && "$length" -gt 2 ]]; then
+    elif [[ "$word1" = 'restore' && "$length" -ge 3 ]]; then
         COMPREPLY=($(compgen -f -- "$cur"))
-        if [ "$length" -gt 3 ]; then
+        if [ "$length" -ge 4 ]; then
             COMPREPLY=()
         fi
     fi
