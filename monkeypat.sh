@@ -26,6 +26,7 @@ function _() {
         return 1
     fi
 
+	local arg
     for arg in "$@"; do
         "$cmd" "$arg"
     done
@@ -60,6 +61,16 @@ function _register() {
     fi
 
     local cmd="$1"
+
+	if [[ "$cmd" =~ ^- || "$cmd" =~ .*" ".* ]]; then
+		local cmd_cleaned="${cmd//-/}"
+		cmd_cleaned="${cmd_cleaned// /}"
+
+        echo "mon: cannot register a command like '$cmd'"
+        echo "try \`mon register $cmd_cleaned \`"
+		return 1
+	fi
+
     if ! _is_registered "$cmd" >/dev/null 2>&1; then
         echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE
         touch "$MON_REGISTERED/$cmd"
