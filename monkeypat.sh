@@ -26,7 +26,7 @@ function _() {
         return 1
     fi
 
-	local arg
+    local arg
     for arg in "$@"; do
         "$cmd" "$arg"
     done
@@ -34,8 +34,8 @@ function _() {
 }
 
 function _not_found_msg() {
-    cmd="$1"
-    not_found='command'
+    local cmd="$1"
+    local not_found='command'
     if [[ "$cmd" == -* ]]; then
         not_found='option'
     fi
@@ -43,12 +43,13 @@ function _not_found_msg() {
 }
 
 function _is_registered() {
-    cmd="$1"
-    if [ ! -f "$MON_REGISTERED/$cmd" ]; then
-        _not_found_msg "$cmd"
-        return 1
-    fi
-    return 0
+    local cmd="$1"
+    [ -f "$MON_REGISTERED/$cmd" ] && return 0 || return 1
+}
+
+function _is_registered_msg() {
+    local cmd="$1"
+    echo "Command '$cmd' is already registered"
 }
 
 function _register() {
@@ -62,19 +63,22 @@ function _register() {
 
     local cmd="$1"
 
-	if [[ "$cmd" == -* || "$cmd" == *" "* ]]; then
-		local cmd_cleaned="${cmd//-/}"
-		cmd_cleaned="${cmd_cleaned// /}"
+    if [[ "$cmd" == -* || "$cmd" == *" "* ]]; then
+        local cmd_cleaned="${cmd//-/}"
+        cmd_cleaned="${cmd_cleaned// /}"
 
         echo "mon: cannot register a command like '$cmd'"
         echo "try \`mon register $cmd_cleaned \`"
-		return 1
-	fi
-
-    if ! _is_registered "$cmd" >/dev/null 2>&1; then
-        echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE
-        touch "$MON_REGISTERED/$cmd"
+        return 1
     fi
+
+    if _is_registered "$cmd"; then
+        _is_registered_msg "$cmd"
+        return 1
+    fi
+
+    echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE
+    touch "$MON_REGISTERED/$cmd"
 
     export cmd
 
@@ -146,7 +150,10 @@ function _patch() {
         return 1
     fi
 
-    if ! _is_registered "$cmd"; then return 1; fi
+    if ! _is_registered "$cmd"; then
+        _not_found_msg "$cmd"
+        return 1
+    fi
 
     if _has_patch "$cmd" "$opt"; then return 1; fi
 
@@ -178,7 +185,10 @@ function _patch() {
 function _unregister() {
     local cmd="$1"
 
-    if ! _is_registered "$cmd"; then return 1; fi
+    if ! _is_registered "$cmd"; then
+        _not_found_msg "$cmd"
+        return 1
+    fi
 
     sed -i "/$cmd/d" $MONRC_FILE &&
         rm "$MON_REGISTERED/$cmd" &&
