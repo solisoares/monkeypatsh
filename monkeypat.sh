@@ -62,7 +62,7 @@ function _register() {
 
     local cmd="$1"
 
-	if [[ "$cmd" =~ ^- || "$cmd" =~ .*" ".* ]]; then
+	if [[ "$cmd" == -* || "$cmd" == *" "* ]]; then
 		local cmd_cleaned="${cmd//-/}"
 		cmd_cleaned="${cmd_cleaned// /}"
 
