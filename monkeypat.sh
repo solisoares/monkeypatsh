@@ -209,7 +209,7 @@ function _unregister() {
     if [[ $# -eq 1 ]] && [[ $1 = "-a" || $1 = "--all" ]]; then
         local cmds="$(mon list)"
 
-		if _confirmed "Unregister all? (y/N): "; then
+        if _confirmed "Unregister all? (y/N): "; then
             _ _unregister $cmds
             return 0
         else
@@ -434,7 +434,7 @@ EOF
 function mon() {
     mon_cmd="$1"
     if [ -z "$mon_cmd" ]; then
-        _help | less
+        _help
         return
     fi
 
@@ -469,7 +469,7 @@ function mon() {
         _restore "$@"
         ;;
     -h | --help)
-        _help | less
+        _help
         ;;
     *)
         echo "mon: unrecognized option '$mon_cmd'"
