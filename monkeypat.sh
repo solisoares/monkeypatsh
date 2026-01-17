@@ -93,7 +93,7 @@ function _register() {
         echo "Registered command '$cmd'"
 
     # Completion template
-    local completion_template="$MON_TEMPLATES/completion.sh"
+    local completion_template="$MON_TEMPLATES/cmd_completion.sh"
     if ! which "$cmd" >/dev/null; then
         # add completion only for new commands for now
         cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
