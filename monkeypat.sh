@@ -182,8 +182,36 @@ function _patch() {
     echo "Patched: $cmd $opt"
 }
 
+function _confirmed() {
+    local question="$1"
+
+    local confirm
+    read -p "$question" "${-+confirm}"
+    confirm="${confirm:-n}"
+
+    if [[ "${confirm,,}" =~ .*[n].* ]]; then
+        # no: 1
+        return 1
+    else
+        # yes: 0
+        return 0
+    fi
+}
+
 function _unregister() {
     local cmd="$1"
+
+    if [[ $# -eq 1 ]] && [[ $1 = "-a" || $1 = "--all" ]]; then
+        local cmds="$(mon list)"
+
+		if _confirmed "Unregister all? (y/N): "; then
+            _ _unregister $cmds
+            return 0
+        else
+            echo "Aborting unregister..."
+            return 1
+        fi
+    fi
 
     if ! _is_registered "$cmd"; then
         _not_found_msg "$cmd"
@@ -193,8 +221,7 @@ function _unregister() {
     sed -i "/$cmd/d" $MONRC_FILE &&
         rm "$MON_REGISTERED/$cmd" &&
         rm "$MON_COMPLETIONS/$cmd" &&
-        echo "Unregistered command '$cmd'." &&
-        echo "You may refresh your session to apply this."
+        echo "Unregistered command '$cmd'"
 }
 
 function _check() {
@@ -297,11 +324,8 @@ function _backup() {
     if [ -f "$backup_file" ]; then
         echo "There is already a backup at '$backup_file'"
 
-        local overwrite
-        read -p "Overwrite? (y/N): " overwrite
-        overwrite="${overwrite:-n}"
-        if [[ "$overwrite" =~ .*[nN].* ]]; then
-            echo "To restore run: \`mon restore $backup_file\`"
+        if ! _confirmed "Overwrite? (y/N): "; then
+            echo "Aborting backup..."
             return 1
         fi
     fi
@@ -418,7 +442,8 @@ function mon() {
         _patch "$@"
         ;;
     unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
-        _ _unregister "$@"
+        _ _unregister "$@" &&
+            echo "You may restart your session to apply this."
         ;;
     che | chec | check)
         _check

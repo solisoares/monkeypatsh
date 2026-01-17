@@ -18,8 +18,14 @@ _mon_completion() {
         fi
 
     elif [[ "$word1" = 'unregister' && "$length" -ge 3 ]]; then
+		if [[ "$cur" =~ ^- ]]; then
+			COMPREPLY=($(compgen -W "-a --all" -- "$cur"))
+			return
+		fi
+
         local registered="$(mon list)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+
         if [ "$length" -ge 4 ]; then
             COMPREPLY=()
         fi
