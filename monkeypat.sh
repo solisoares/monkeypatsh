@@ -63,6 +63,11 @@ function _register() {
 
     local cmd="$1"
 
+    if [ "$cmd" = "mon" ]; then
+        echo "error: monkeypatsh cannot be registered."
+        return 1
+    fi
+
     if [[ "$cmd" == -* || "$cmd" == *" "* ]]; then
         local cmd_cleaned="${cmd//-/}"
         cmd_cleaned="${cmd_cleaned// /}"
