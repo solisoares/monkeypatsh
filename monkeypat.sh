@@ -136,11 +136,21 @@ function _has_patch() {
     cmd="$1"
     sub="$2"
     if _list "$cmd" | grep -- "$sub" >/dev/null; then
-        echo "mon: The patch '$sub' already exist"
-        echo "Edit with 'mon edit $cmd $sub'"
         return 0
     fi
     return 1
+}
+
+function _has_patch_msg() {
+    local cmd="$1"
+    local patch="$2"
+    echo "error: '$cmd $patch' already exist"
+}
+
+function _dont_has_patch_msg() {
+    local cmd="$1"
+    local patch="$2"
+    echo "error: '$cmd $patch' does not exist"
 }
 
 function _patch() {
@@ -160,7 +170,10 @@ function _patch() {
         return 1
     fi
 
-    if _has_patch "$cmd" "$opt"; then return 1; fi
+    if _has_patch "$cmd" "$opt"; then
+        _has_patch_msg "$cmd" "$opt"
+        return 1
+    fi
 
     export opt code
 
@@ -244,52 +257,54 @@ function _check() {
 }
 
 function _edit() {
-    # Quick edit monkeypatsh itself
-    if [ $# -eq 0 ] || [ $1 = 'mon' ]; then
+    # Edit registered dir
+    if [[ "$#" -eq 0 ]]; then
+        "$_editor" "$MON_REGISTERED"
+    fi
+
+    # Edit monkeypatsh itself
+    if [[ "$#" -eq 1 && "$1" = 'mon' ]]; then
         "$_editor" "$MON_DIR/monkeypat.sh"
         return 0
     fi
 
-    # Quick edit .monrc and .monconfig
-    if [ $1 = "-r" ] || [ $1 = "--rc" ]; then
+    # Edit .monrc and .monconfig
+    if [[ "$1" = "-r" || "$1" = "--rc" ]]; then
         "$_editor" "$MONRC_FILE"
         return 0
     fi
-    if [ $1 = "-c" ] || [ $1 = "--config" ]; then
+    if [[ "$1" = "-c" || "$1" = "--config" ]]; then
         "$_editor" "$MON_CONFIG_FILE"
         return 0
     fi
 
+    local cmd="$1"
+
+    # Edit cmd
+    if [ "$#" -eq 1 ]; then
+        if ! _is_registered "$cmd"; then
+            _not_found_msg "$cmd"
+            exit 1
+        fi
+
+        "$_editor" "$MON_REGISTERED/$cmd"
+        return 0
+
+    fi
+
     # Edit patch
     if [ "$#" -eq 2 ]; then
-        local cmd="$1"
         local opt="$2"
         local opt_function="_$opt"
-        if _has_patch "$cmd" "$opt" >/dev/null 2>&1; then
+        if _has_patch "$cmd" "$opt"; then
             local line=$(sed -n "/$opt_function/{=;q;}" "$MON_REGISTERED/$cmd")
             _open_file_at_line "$MON_REGISTERED/$cmd" "$line"
             return 0
-        fi
-    fi
-
-    local paths=()
-    local cmds="$@"
-    local cmd
-
-    for cmd in $cmds; do
-        if _is_registered "$cmd" >/dev/null 2>&1; then
-            paths+=("$MON_REGISTERED/$cmd")
         else
-            _not_found_msg "$cmd"
+            _dont_has_patch_msg "$cmd" "$opt"
+            return 1
         fi
-    done
-
-    if [ "${#paths[@]}" -eq 0 ]; then
-        return 1
     fi
-
-    "$_editor" "${paths[@]}"
-    return 0
 }
 
 function _list() {
@@ -402,11 +417,12 @@ Commands available:
 
     check                                - [DEV] Quick sanity check.
 
-    edit [<cmd>...]                      - Edit a registered command wrapper's or a patch with your preferred code editor[1].
-         | [<cmd> <sub>]                   If you want to edit mon source code itself you can do `mon edit [mon]`.
+    edit [<cmd>]                         - Edit a registered command wrapper's or a patch with your preferred code editor[1].
+         | [<cmd> <sub>]                   If you don't pass any arguments (`mon edit`) monkeypatsh opens the registered directory.
          | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
          | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
                                            since it is automatically generated.
+                                           If you want to edit mon source code itself you can do `mon edit mon`.
 
     list [<cmd>]                         - List all available monkeypatsh wrappers. If -r or --recursive is
          | [-r | --recursive]              used, list all wrappers and its patches. If <cmd> is used, list
