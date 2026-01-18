@@ -220,7 +220,7 @@ function _unregister() {
     local cmd="$1"
 
     if [[ $# -eq 1 ]] && [[ $1 = "-a" || $1 = "--all" ]]; then
-        local cmds="$(mon list)"
+        local cmds="$(_list)"
 
         if _confirmed "Unregister all? (y/N): "; then
             _ _unregister $cmds
