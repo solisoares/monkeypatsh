@@ -238,7 +238,7 @@ function _unregister() {
 
     sed -i "/$cmd/d" $MONRC_FILE &&
         rm "$MON_REGISTERED/$cmd" &&
-        rm "$MON_COMPLETIONS/$cmd" &&
+        rm -f "$MON_COMPLETIONS/$cmd" &&
         echo "Unregistered command '$cmd'"
 }
 
