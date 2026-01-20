@@ -17,7 +17,7 @@ function rm_mondir() {
         # Remove registered folder (not present in source)
         rm -r "$MON_REGISTERED"
         # Remove all completions besides the one for `mon` (`completions/mon` is present in source)
-        find "$MON_COMPLETIONS" -type f | grep -v "$MON_COMPLETIONS/mon"  | xargs -I {} rm {}
+        find "$MON_COMPLETIONS" -type f | grep -v "$MON_COMPLETIONS/mon" | xargs -I {} rm {}
         # Remove symlink to source
         rm "$MON_DIR"
 
@@ -48,7 +48,9 @@ function rm_monconfig_file() {
 
 function update_shellrc_file() {
     # Remove setup configs from .rc file
+    sed -i '/monkeypatsh/d' $SHRC_FILE
     sed -i '/monrc/d' $SHRC_FILE
+    sed -i '\|.mon/registered/bin|d' $SHRC_FILE
     _log "Removed setup configs from $SHRC_FILE"
 }
 

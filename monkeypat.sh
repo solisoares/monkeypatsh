@@ -12,27 +12,6 @@ if [ -e "$MON_CONFIG_FILE" ] && [ -n "$_config_editor" ]; then
     _editor="$_config_editor"
 fi
 
-function _() {
-    # Handle multiple args for a given command
-    # This allows registering multiple monkeypatsh
-    # commands at once, i.e. `mon register <cmd>...`
-
-    cmd="$1"
-
-    shift
-    if [ "$#" -eq 0 ]; then
-        echo "mon: missing argument for '${cmd:1}'"
-        echo "'${cmd:1}' requires at least 1 argument, you didn't provided one"
-        return 1
-    fi
-
-    local arg
-    for arg in "$@"; do
-        "$cmd" "$arg"
-    done
-
-}
-
 function _not_found_msg() {
     local cmd="$1"
     local not_found='command'
@@ -44,12 +23,47 @@ function _not_found_msg() {
 
 function _is_registered() {
     local cmd="$1"
-    [ -f "$MON_REGISTERED/$cmd" ] && return 0 || return 1
+    [[ -f "$MON_REGISTERED_ALIAS/$cmd" || -f "$MON_REGISTERED_BIN/$cmd" ]] && return 0 || return 1
+}
+
+function _is_alias() {
+    local cmd="$1"
+    [[ -f "$MON_REGISTERED_ALIAS/$cmd" ]] && return 0 || return 1
+}
+
+function _is_bin() {
+    local cmd="$1"
+    [[ -f "$MON_REGISTERED_BIN/$cmd" ]] && return 0 || return 1
+}
+
+function _registered_dir {
+    local cmd="$1"
+
+    if ! _is_registered "$cmd"; then
+        _not_found_msg "$cmd"
+        return 1
+    fi
+
+    if _is_alias "$cmd"; then
+        printf "$MON_REGISTERED_ALIAS"
+    else
+        printf "$MON_REGISTERED_BIN"
+    fi
+
+    return 0
 }
 
 function _is_registered_msg() {
     local cmd="$1"
-    echo "Command '$cmd' is already registered"
+
+    local location="$(_registered_dir $cmd)"
+
+    if [ "$location" = "$MON_REGISTERED_ALIAS" ]; then
+        echo "'$cmd' already registered as alias"
+    else
+        echo "'$cmd' already registered as bin"
+    fi
+
 }
 
 function _register() {
@@ -61,48 +75,106 @@ function _register() {
         return 1
     fi
 
-    local cmd="$1"
+    local location
+    case "$1" in
+    --bin)
+        location="$MON_REGISTERED_BIN"
+        shift
+        ;;
+    --alias)
+        location="$MON_REGISTERED_ALIAS"
+        shift
+        ;;
+    *)
+        location="$MON_REGISTERED_ALIAS"
+        ;;
+    esac
 
-    if [ "$cmd" = "mon" ]; then
-        echo "error: monkeypatsh cannot be registered."
-        return 1
-    fi
+    local cmds=("$@")
 
-    if [[ "$cmd" == -* || "$cmd" == *" "* ]]; then
-        local cmd_cleaned="${cmd//-/}"
-        cmd_cleaned="${cmd_cleaned// /}"
+    local cmd
+    for cmd in "${cmds[@]}"; do
+        if [ "$cmd" = "mon" ]; then
+            echo "error: monkeypatsh cannot be registered."
+            return 1
+        fi
 
-        echo "mon: cannot register a command like '$cmd'"
-        echo "try \`mon register $cmd_cleaned \`"
-        return 1
-    fi
+        if [[ "$cmd" == -* || "$cmd" == *" "* ]]; then
+            local cmd_cleaned="${cmd//-/}"
+            cmd_cleaned="${cmd_cleaned// /}"
 
-    if _is_registered "$cmd"; then
-        _is_registered_msg "$cmd"
-        return 1
-    fi
+            echo "mon: cannot register a command like '$cmd'"
+            echo "try \`mon register $cmd_cleaned \`"
+            return 1
+        fi
 
-    echo "alias $cmd=$MON_REGISTERED/$cmd" >>$MONRC_FILE
-    touch "$MON_REGISTERED/$cmd"
+        local old_location
+        local changed_location=0
 
-    export cmd
+        if _is_registered "$cmd"; then
+            old_location="$(_registered_dir $cmd)"
+            if [ "$location" = "$old_location" ]; then
+                _is_registered_msg "$cmd"
+                continue
+            else
+                changed_location=1
+            fi
+        fi
 
-    # Wrapper template
-    local register_template="$MON_TEMPLATES/register_cmd.sh"
-    if which "$cmd" >/dev/null; then
-        register_template="$MON_TEMPLATES/register_existent_cmd.sh"
-    fi
+        if [ "$changed_location" -eq 1 ]; then
+            local change_type
+            if [ "$location" = "$MON_REGISTERED_ALIAS" ]; then
+                change_type="alias"
+            else
+                change_type="bin"
+            fi
 
-    cat "$register_template" | envsubst '${cmd}' >"$MON_REGISTERED/$cmd" &&
-        chmod +x "$MON_REGISTERED/$cmd" &&
+            _is_registered_msg $cmd
+            if ! _has_confirmed "Change to $change_type?"; then
+                echo "Aborting change..."
+                continue
+            fi
+
+            mv "$old_location/$cmd" "$location/$cmd"
+
+            if [ "$location" = "$MON_REGISTERED_BIN" ]; then
+                _unalias "$cmd"
+            fi
+
+            echo "'$cmd' updated to $change_type."
+        fi
+
+        if [[ "$location" = "$MON_REGISTERED_ALIAS" ]]; then
+            echo "alias $cmd=$MON_REGISTERED_ALIAS/$cmd" >>$MONRC_FILE
+        fi
+
+        if [ "$changed_location" -eq 1 ]; then
+            continue
+        fi
+
+        touch "$location/$cmd"
+
+        export cmd
+
+        # Wrapper template
+        local register_template="$MON_TEMPLATES/register_cmd.sh"
+        if which "$cmd" >/dev/null; then
+            register_template="$MON_TEMPLATES/register_existent_cmd.sh"
+        fi
+
+        # Completion template
+        local completion_template="$MON_TEMPLATES/cmd_completion.sh"
+        if ! which "$cmd" >/dev/null; then
+            # add completion only for new commands for now
+            cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
+        fi
+
+        cat "$register_template" | envsubst '${cmd}' >"$location/$cmd"
+        chmod +x "$location/$cmd"
         echo "Registered command '$cmd'"
+    done
 
-    # Completion template
-    local completion_template="$MON_TEMPLATES/cmd_completion.sh"
-    if ! which "$cmd" >/dev/null; then
-        # add completion only for new commands for now
-        cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
-    fi
+    echo "Refresh commands with \`mon refresh\`"
 
 }
 
@@ -119,7 +191,6 @@ function _open_file_at_line() {
         "$_editor" +"$line" "$file"
         ;;
     code)
-        echo "$file":"$line"
         "$_editor" --goto "$file":"$line"
         ;;
     kate)
@@ -175,36 +246,38 @@ function _patch() {
         return 1
     fi
 
+    local location="$(_registered_dir $cmd)"
+
     export opt code
 
     # Add patch function
-    cp "$MON_REGISTERED/$cmd" './tmpfile'
+    cp "$location/$cmd" './tmpfile'
     patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
         patch_function_template="$MON_TEMPLATES/patch_cmd_function_stub.sh"
     fi
     patch_function="$(cat "$patch_function_template" | envsubst '${opt} ${code}')"
-    awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$MON_REGISTERED/$cmd"
+    awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$location/$cmd"
 
     # Add patch case
     patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${opt}')"
-    cp "$MON_REGISTERED/$cmd" './tmpfile'
-    awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$MON_REGISTERED/$cmd" &&
+    cp "$location/$cmd" './tmpfile'
+    awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$location/$cmd" &&
         rm './tmpfile'
 
     if [ -z "$code" ]; then
-        line="$(sed -n '/# put your code here/{=;q;}' "$MON_REGISTERED/$cmd")"
-        _open_file_at_line "$MON_REGISTERED/$cmd" "$line"
+        line="$(sed -n '/# put your code here/{=;q;}' "$location/$cmd")"
+        _open_file_at_line "$location/$cmd" "$line"
     fi
 
     echo "Patched: $cmd $opt"
 }
 
-function _confirmed() {
+function _has_confirmed() {
     local question="$1"
 
     local confirm
-    read -p "$question" "${-+confirm}"
+    read -p "$question (y/N): " "${-+confirm}"
     confirm="${confirm:-n}"
 
     if [[ "${confirm,,}" =~ .*[n].* ]]; then
@@ -216,30 +289,74 @@ function _confirmed() {
     fi
 }
 
-function _unregister() {
+function _unalias() {
+    # Will be unaliased on next refresh
     local cmd="$1"
+    sed -i -E "/alias\s+$cmd/d" "$MONRC_FILE"
+    echo "$cmd" >>"$MON_TO_UNALIAS"
+}
 
-    if [[ $# -eq 1 ]] && [[ $1 = "-a" || $1 = "--all" ]]; then
-        local cmds="$(_list)"
+function _unhash() {
+    # Will be unhashed on next refresh
+    local cmd="$1"
+    echo "$cmd" >>"$MON_TO_UNHASH"
+}
 
-        if _confirmed "Unregister all? (y/N): "; then
-            _ _unregister $cmds
-            return 0
-        else
-            echo "Aborting unregister..."
-            return 1
-        fi
-    fi
-
-    if ! _is_registered "$cmd"; then
-        _not_found_msg "$cmd"
+function _unregister() {
+    if [ "$#" -eq 0 ]; then
+        echo "mon: missing argument for 'unregister'"
+        echo "'unregister' requires at least 1 argument, you provided $#"
         return 1
     fi
 
-    sed -i "/$cmd/d" $MONRC_FILE &&
-        rm "$MON_REGISTERED/$cmd" &&
-        rm -f "$MON_COMPLETIONS/$cmd" &&
+    local args=()
+    local question
+    local type
+    if [[ $# -eq 1 ]] && [[ $1 = "--alias" || $1 = "--bin" || $1 = "--all" ]]; then
+        if [[ $1 = "--alias" ]]; then
+            read -d '\n' -a args <<<"$(_list_alias)"
+            question="Unregister all aliases?"
+
+        elif [[ $1 = "--bin" ]]; then
+            read -d '\n' -a args <<<"$(_list_bin)"
+            question="Unregister all binaries?"
+
+        elif [[ $1 = "--all" ]]; then
+            read -d '\n' -a args <<<"$(_list_full)"
+            question="Unregister all aliases and binaries?"
+        fi
+
+        if ! _has_confirmed "$question"; then
+            echo "Aborting unregister..."
+            return 1
+        fi
+    else
+        args=("$@")
+    fi
+
+    local arg
+    for arg in "${args[@]}"; do
+        local cmd="$arg"
+
+        if ! _is_registered "$cmd"; then
+            _not_found_msg "$cmd"
+            return 1
+        fi
+
+        if _is_alias "$cmd"; then
+            _unalias "$cmd"
+        else
+            _unhash "$cmd"
+        fi
+
+        local location="$(_registered_dir $cmd)"
+        rm "$location/$cmd"
+        rm -f "$MON_COMPLETIONS/$cmd"
         echo "Unregistered command '$cmd'"
+    done
+
+    echo "Refresh commands with \`mon refresh\`"
+
 }
 
 function _check() {
@@ -250,7 +367,10 @@ function _check() {
     echo -e "$(cat $MON_CONFIG_FILE)\n"
 
     echo "============= registered ($MON_REGISTERED) ============="
-    echo -e "$(ls -l $MON_REGISTERED)\n"
+    echo "$alias_title"
+    echo -e "$(ls -l $MON_REGISTERED_ALIAS)\n"
+    echo "$bin_title"
+    echo -e "$(ls -l $MON_REGISTERED_BIN)\n"
 
     echo "============= completions ($MON_COMPLETIONS) ============="
     echo -e "$(ls -l $MON_COMPLETIONS)\n"
@@ -279,6 +399,7 @@ function _edit() {
     fi
 
     local cmd="$1"
+    local location="$(_registered_dir $cmd)"
 
     # Edit cmd
     if [ "$#" -eq 1 ]; then
@@ -287,7 +408,7 @@ function _edit() {
             exit 1
         fi
 
-        "$_editor" "$MON_REGISTERED/$cmd"
+        "$_editor" "$location/$cmd"
         return 0
 
     fi
@@ -297,8 +418,8 @@ function _edit() {
         local opt="$2"
         local opt_function="_$opt"
         if _has_patch "$cmd" "$opt"; then
-            local line=$(sed -n "/$opt_function/{=;q;}" "$MON_REGISTERED/$cmd")
-            _open_file_at_line "$MON_REGISTERED/$cmd" "$line"
+            local line=$(sed -n "/$opt_function/{=;q;}" "$location/$cmd")
+            _open_file_at_line "$location/$cmd" "$line"
             return 0
         else
             _dont_has_patch_msg "$cmd" "$opt"
@@ -307,23 +428,120 @@ function _edit() {
     fi
 }
 
-function _list() {
-    local cmd="$1"
-    if [ -z "$cmd" ]; then
-        find "$MON_REGISTERED" -type f | xargs -I {} basename {} | sort
-    else
-        if [ "$cmd" = "-r" ] || [ "$cmd" = "--recursive" ]; then
-            local cmds=$(_list)
-            local _cmd
-            for _cmd in $cmds; do
-                echo "$_cmd:"
-                _list "$_cmd" | xargs -I {} echo "  " {}
-            done
-        elif [ -f "$MON_REGISTERED/$cmd" ]; then
-            cat "$MON_REGISTERED/$cmd" | grep -oP '(?<=function _).*(?=\()' | grep -v 'default'
-        else
-            _not_found_msg "$cmd"
+alias_title="[ Alias ]"
+bin_title="[  Bin  ]"
+
+function _list_alias() {
+    local aliases="$(find "$MON_REGISTERED_ALIAS" -type f | xargs -I {} basename {} | sort)"
+    if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]] && [ -n "$aliases" ]; then
+        echo "$alias_title"
+    fi
+    if [ -n "$aliases" ]; then
+        echo "$aliases"
+    fi
+}
+
+function _list_bin() {
+    local bins="$(find "$MON_REGISTERED_BIN" -type f | xargs -I {} basename {} | sort)"
+    if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]] && [ -n "$bins" ]; then
+        echo "$bin_title"
+    fi
+    if [ -n "$bins" ]; then
+        echo "$bins"
+    fi
+}
+
+function _list_full() {
+    if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]]; then
+        local aliases="$(_list_alias --verbose)"
+
+        local bins="$(_list_bin --verbose)"
+        if [[ -n "$aliases" ]]; then
+            echo "$aliases"
         fi
+
+        if [[ -n "$aliases" && -n "$bins" ]]; then
+            echo ""
+        fi
+
+        if [[ -n "$bins" ]]; then
+            echo "$bins"
+        fi
+    else
+        _list_alias
+        _list_bin
+    fi
+}
+
+function _list() {
+    if [ "$#" -eq 0 ]; then
+        _list_full --verbose
+        return
+    fi
+
+    if [ "$#" -eq 1 ] && [[ "$1" = "-f" || "$1" = "--flat" ]]; then
+        _list_full
+        return
+    fi
+
+    if [ "$#" -eq 1 ] && [[ "$1" = "-a" || "$1" = "--alias" ]]; then
+        _list_alias
+        return
+    fi
+
+    if [ "$#" -eq 1 ] && [[ "$1" = "-b" || "$1" = "--bin" ]]; then
+        _list_bin
+        return
+    fi
+
+    if [ "$1" = "-r" ] || [ "$1" = "--recursive" ]; then
+        function __list_verbose() {
+            local alias_or_bin="$1"
+            local cmds
+            local title
+            if [ "$alias_or_bin" = "alias" ]; then
+                cmds="$(_list_alias)"
+                title="$alias_title"
+            else
+                cmds="$(_list_bin)"
+                title="$bin_title"
+            fi
+
+            if [ -z "$cmds" ]; then
+                return
+            fi
+
+            echo "$title"
+            local cmd
+            for cmd in $cmds; do
+                local patches="$(_list "$cmd")"
+                local text
+                if [ -z "$patches" ]; then
+                    text="$cmd"
+                else
+                    text="$cmd\n"
+                    text+="$(echo "$patches" | xargs -I {} echo ' └─' {})"
+                fi
+                echo -e "$text"
+            done
+
+        }
+
+        local alias_part="$(__list_verbose alias)"
+        local bin_part="$(__list_verbose bin)"
+        if [[ -n "$alias_part" ]]; then echo "$alias_part"; fi
+        if [[ -n "$alias_part" && -n "$bin_part" ]]; then echo ""; fi
+        if [[ -n "$bin_part" ]]; then echo "$bin_part"; fi
+
+        return
+    fi
+
+    local cmd="$1"
+    if _is_registered "$cmd"; then
+        local location="$(_registered_dir $cmd)"
+        cat "$location/$cmd" | grep -oP '(?<=function _).*(?=\()' | grep -v 'default' | sort
+    else
+        _not_found_msg "$cmd"
     fi
 }
 
@@ -344,7 +562,7 @@ function _backup() {
     if [ -f "$backup_file" ]; then
         echo "There is already a backup at '$backup_file'"
 
-        if ! _confirmed "Overwrite? (y/N): "; then
+        if ! _has_confirmed "Overwrite?"; then
             echo "Aborting backup..."
             return 1
         fi
@@ -395,46 +613,72 @@ function _restore() {
     cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
 
     echo "Restored monkeypatsh configuration."
-    echo "Refresh your session to use any restored commands."
+    echo "Refresh commands with \`mon refresh\`"
+}
+
+function _refresh() {
+    # This is in the API just as a convenience, because
+    # every time monkeypatsh is called, it sources .monrc,
+    # and there it exports, alias and unalias the necessary stuff.
+    echo "Refreshed commands"
 }
 
 function _help() {
     cat <<'EOF'
 Commands available:
-    register <cmd>...                    - Register commands to be wrapped with monkeypatsh.
+    register <cmd>...                    - Register commands to be wrapped with monkeypatsh, as aliases or binaries.
+             | --alias <cmd>...            If no flag is provided, or the flag `--alias` is provided, register commands as aliases.
+             | --bin <cmd>...              If the flag `--bin` is provided, register commands as binaries (executables available via PATH).
+                                           Since aliases cannot be called by default in scripts, they are a great choice for
+                                           patching existing commands in interactive shells. Like registering git, ls, ...
+                                           Binaries on the other hand, can be called inside scripts by default, and therefore
+                                           are a great choice for new commands.
+                                           To change from one registration method to the other, just re-register the commands with
+                                           the other flag. For example, if `foo` is registered as an alias `mon register --alias foo`,
+                                           to change it to an binary, just run `mon register --bin foo`.
 
     patch <cmd> <sub> [<code>]           - Patch a sub command or option to the registered command. There are 2 ways.
-                                           1) You can add your code inline*:
-                                              mon patch ls foo 'echo foo!!!'
-                                              mon patch ls --bar 'echo bar!!!'
+                                           1) You can add your code inline(*):
+                                                mon patch ls foo 'echo foo!!!'
+                                                mon patch ls --bar 'echo bar!!!'
+                                                (*): Keep your inline code simple. If you want to parse arguments or your
+                                                code span multiple lines, use the second format.
                                            2) You can summon your editor[1] and put your code there:
-                                              mon patch ls foo
-                                              mon patch ls --bar
-                                           *) Keep your inline code simple. If you want to parse arguments or your
-                                              code span multiple lines, use the second format.
+                                                mon patch ls foo
+                                                mon patch ls --bar
 
-    unregister <cmd>...                  - Unregister commands. Remove the wrapper and reset its behavior.
+    unregister <cmd>...                  - Unregister commands. This deletes the wrapper for that command.
+               | --all                     By providing `--all`, `--alias` or `--bin` you can unregister all commands at once,
+               | --alias                   all alias, or all binaries.
+               | --bin
 
     check                                - [DEV] Quick sanity check.
 
     edit [<cmd>]                         - Edit a registered command wrapper's or a patch with your preferred code editor[1].
-         | [<cmd> <sub>]                   If you don't pass any arguments (`mon edit`) monkeypatsh opens the registered directory.
+         | [<cmd> <sub>]                   If you don't provide any arguments (`mon edit`) monkeypatsh opens the registered directory.
          | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
          | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
                                            since it is automatically generated.
                                            If you want to edit mon source code itself you can do `mon edit mon`.
 
-    list [<cmd>]                         - List all available monkeypatsh wrappers. If -r or --recursive is
-         | [-r | --recursive]              used, list all wrappers and its patches. If <cmd> is used, list
-                                           all the patches added for this command.
+    list [<cmd>]                         - List registered commands and patches.
+         | [-a | --alias]                  If no commands or flags are provided, list all registered commands.
+         | [-b | --bin]                    If a `<cmd>` is provided, list its patches.
+         | [-f | --flat]                   If `-a` or `--alias` is provided, list registered alias.
+         | [-r | --recursive]              If `-b` or `--bin` is provided, list registered binaries.
+                                           By default, the list for registered commands nicely distinguish aliases from binaries,
+                                           provide `-f` or `--flat` to get a flat list.
+                                           If `-r` or `--recursive` is provided, list registered commands and their patches.
 
     uninstall                            - Uninstall monkeypatsh. Can also be run as `bash uninstall.sh` from
                                            the source dir.
 
-    backup [-f | --file <backup>]        - Backup monkeypatsh into a restorable file.
+    backup [-f | --file <file>]          - Backup monkeypatsh into a restorable file.
 	                                       If -f or --file is not provided, backups into ~/.mon.bak.tar
 
-    restore <backup>                     - Restore monkeypatsh from file.
+    restore <file>                       - Restore monkeypatsh from file.
+
+    refresh                              - Refresh commands.
 
 Options available:
     -h|--help                            - Show this help and exit. Can also be shown with just `mon`
@@ -457,14 +701,13 @@ function mon() {
     shift
     case "$mon_cmd" in
     reg | regi | regis | regist | registe | register)
-        _ _register "$@"
+        _register "$@"
         ;;
     pat | patc | patch)
         _patch "$@"
         ;;
     unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
-        _ _unregister "$@" &&
-            echo "You may restart your session to apply this."
+        _unregister "$@"
         ;;
     che | chec | check)
         _check
@@ -473,7 +716,7 @@ function mon() {
         _edit "$@"
         ;;
     lis | list)
-        _list "$1"
+        _list "$@"
         ;;
     uni | unin | unins | uninst | uninsta | uninstal | uninstall)
         _uninstall
@@ -483,6 +726,9 @@ function mon() {
         ;;
     res | rest | resto | restor | restore)
         _restore "$@"
+        ;;
+    ref | refr | refre | refres | refresh)
+        _refresh
         ;;
     -h | --help)
         _help

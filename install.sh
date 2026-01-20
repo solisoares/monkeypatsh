@@ -7,20 +7,23 @@ SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source "$SOURCE_DIR/common.sh"
 
 function copy_source_code() {
-	local msg
+    local msg
 
     if [ "$devmode" -eq 1 ]; then
         # Dev install: symlink source
         ln -s "$SOURCE_DIR/" "$MON_DIR"
-		msg="Symlinked source code to $MON_DIR"
+        msg="Symlinked source code to $MON_DIR"
     else
         # Normal install: copy source
         rsync -a --exclude='.git' "$SOURCE_DIR/" "$MON_DIR"
-		msg="Copied source code to $MON_DIR"
+        msg="Copied source code to $MON_DIR"
     fi
 
-    # Add `registered` directory
-    mkdir "$MON_REGISTERED"
+    # Add directories for registered commands
+    #   bin  : accessible by PATH variable, directly available in scripts, good for new commands.
+    #   alias: aliases, good for patching existent commands like git, ls, ...
+    mkdir -p "$MON_REGISTERED_BIN"
+    mkdir -p "$MON_REGISTERED_ALIAS"
 
     _log "$msg"
 
@@ -33,6 +36,12 @@ function setup_monrc_file() {
 
     # Source completions
     echo "if [ -d $MON_COMPLETIONS ]; then source <(cat $MON_COMPLETIONS/*); fi" >>"$MONRC_FILE"
+
+    # Unalias pending unregistered alias
+    echo "if [ -f $MON_TO_UNALIAS ]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MONRC_FILE"
+
+    # Unhash pending unregistered binaries
+    echo "if [ -f $MON_TO_UNHASH ]; then hash -d \$(cat $MON_TO_UNHASH) > /dev/null 2>&1 && rm $MON_TO_UNHASH; fi" >>"$MONRC_FILE"
 
     echo "" >>"$MONRC_FILE"
 
@@ -59,7 +68,10 @@ function setup_shellrc_file() {
     # Monkeypatsh is itself an alias.
     # Each call to `mon` sources the monkeypatsh rc file to make commands
     # aliases up to date on each monkeypatsh registration and patch.
-    echo "alias mon='source "$MONRC_FILE" > $DEVNULL && $MON_DIR/monkeypat.sh'" >>"$SHRC_FILE"
+    echo "alias mon='source "$MONRC_FILE" > $DEVNULL; $MON_DIR/monkeypat.sh'" >>"$SHRC_FILE"
+
+    # For commands registered as binary, export PATH so they can be found
+    echo "export PATH=\"$MON_REGISTERED_BIN:\$PATH\"" >>"$SHRC_FILE"
 
     _log "Configured "$SHRC_FILE" file"
 

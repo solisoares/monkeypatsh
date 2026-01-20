@@ -1,71 +1,111 @@
 _mon_completion() {
     local word1="${COMP_WORDS[1]}"
+    local word2="${COMP_WORDS[2]}"
 
     local length="${#COMP_WORDS[@]}"
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
 
-    COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore -h --help' -- "$cur"))
+    COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore refresh -h --help' -- "$cur"))
 
-    if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then
+    function __is_inside() {
+        local var="$1"
+        shift
+
+        local is_inside=0
+
+        local item
+        for item in "$@"; do
+            [[ "$var" = "$item" ]] && is_inside=1
+        done
+
+        if [[ "$is_inside" -eq 1 ]]; then
+            return 0
+        else
+            return 1
+        fi
+    }
+
+    if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then # mon register <?>...
+        if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then      # mon register -<?>
+            COMPREPLY=($(compgen -W "--alias --bin" -- "$cur"))
+            return
+        fi
+
+        if [[ "$word2" = "--alias" ]]; then # mon register --alias <cmd?>...
+            local bins="$(mon list --bin)"
+            COMPREPLY=($(compgen -W "$bins" -- "$cur"))
+            return
+        fi
+
+        if [[ "$word2" = "--bin" ]]; then # mon register --bin <cmd?>...
+            local alias="$(mon list --alias)"
+            COMPREPLY=($(compgen -W "$alias" -- "$cur"))
+            return
+        fi
+
         COMPREPLY=()
 
-    elif [[ "$word1" = 'patch' && "$length" -ge 3 ]]; then
-        local registered="$(mon list)"
+    elif [[ "$word1" = 'patch' && "$length" -ge 3 ]]; then # mon patch <?>...
+        local registered="$(mon list --flat)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
-        if [ "$length" -ge 4 ]; then
+        if [ "$length" -ge 4 ]; then # mon patch <> <> <?>...
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'unregister' && "$length" -ge 3 ]]; then
-		if [[ "$cur" =~ ^- ]]; then
-			COMPREPLY=($(compgen -W "-a --all" -- "$cur"))
-			return
-		fi
-
-        local registered="$(mon list)"
+    elif [[ "$word1" = 'unregister' && "$length" -ge 3 ]]; then # mon unregister <?>...
+        local registered="$(mon list --flat)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
 
-        if [ "$length" -ge 4 ]; then
-            COMPREPLY=()
+        if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then # mon unregister -<?>
+            COMPREPLY=($(compgen -W "--all --alias --bin" -- "$cur"))
+            return
         fi
 
-    elif [[ "$word1" = 'check' && "$length" -ge 3 ]]; then
+        if [[ "$length" -eq 4 ]] && __is_inside "$prev" "--all" "--alias" "--bin"; then # mon unregister --all/--alias/--bin <>
+            COMPREPLY=()
+            return
+        fi
+
+    elif [[ "$word1" = 'check' && "$length" -ge 3 ]]; then # mon check <?>...
         COMPREPLY=()
 
-    elif [[ "$word1" = 'edit' && "$length" -ge 3 ]]; then
-        local registered="$(mon list)"
-		if [[ "$cur" =~ ^- ]]; then
-			COMPREPLY=($(compgen -W " -c --config -r --rc" -- "$cur"))
-		else
-			COMPREPLY=($(compgen -W "$registered" -- "$cur"))
-		fi
-        if [ "$length" -ge 4 ]; then
-            if [[ "$prev" =~ ^- ]]; then
-                COMPREPLY=()
-            else
-                local patched="$(mon list ${COMP_WORDS[2]})"
-                COMPREPLY=($(compgen -W "$patched" -- "$cur"))
+    elif [[ "$word1" = 'edit' && "$length" -ge 3 ]]; then # mon edit <?>...
+        local registered="$(mon list --flat)"
+
+        if [[ "$length" -eq 3 ]]; then  # mon edit <?>
+            if [[ "$cur" =~ ^- ]]; then # mon edit -<?>
+                COMPREPLY=($(compgen -W "-c --config -r --rc" -- "$cur"))
+            else # mon edit <cmd?>
+                COMPREPLY=($(compgen -W "$registered" -- "$cur"))
             fi
+            return
         fi
-        if [ "$length" -ge 5 ]; then
+
+        if [[ "$length" -eq 4 && ! "$prev" =~ ^- ]]; then # mon edit <cmd> <sub?>
+            local patches="$(mon list $prev)"
+            COMPREPLY=($(compgen -W "$patches" -- "$cur"))
+            return
+        fi
+
+        COMPREPLY=()
+
+    elif [[ "$word1" = 'list' && "$length" -ge 3 ]]; then # mon list <?>...
+        local registered="$(mon list --flat)"
+
+        if [[ "$cur" =~ ^- ]]; then # mon list -<?>
+            COMPREPLY=($(compgen -W "-a --alias -b --bin -f --flat -r --recursive" -- "$cur"))
+        else # mon list <cmd?>
+            COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+        fi
+        if [ "$length" -ge 4 ]; then # mon list <> <?>
             COMPREPLY=()
         fi
 
-    elif [[ "$word1" = 'list' && "$length" -ge 3 ]]; then
-        local registered="$(mon list)"
-		if [[ "$cur" =~ ^- ]]; then
-			COMPREPLY=($(compgen -W "-r --recursive" -- "$cur"))
-		else
-			COMPREPLY=($(compgen -W "$registered" -- "$cur"))
-		fi
-        if [ "$length" -ge 4 ]; then
-            COMPREPLY=()
-        fi
-
-    elif [[ "$word1" = 'backup' && "$length" -ge 3 ]]; then
+    elif [[ "$word1" = 'backup' && "$length" -ge 3 ]]; then # mon backup <?>...
         COMPREPLY=($(compgen -W '-f --file' -- "$cur"))
-        if [ "$length" -ge 4 ]; then
+
+        if [ "$length" -ge 4 ]; then # mon backup <> <?>
             COMPREPLY=($(compgen -f -- "$cur"))
         fi
         if [ "$length" -ge 5 ]; then

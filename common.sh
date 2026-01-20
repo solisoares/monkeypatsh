@@ -2,7 +2,11 @@ MON_DIR=~/.mon
 
 MON_TEMPLATES=$MON_DIR/_templates
 MON_REGISTERED=$MON_DIR/registered
+MON_REGISTERED_ALIAS=$MON_REGISTERED/alias
+MON_REGISTERED_BIN=$MON_REGISTERED/bin
 MON_COMPLETIONS=$MON_DIR/completions
+MON_TO_UNALIAS=$MON_DIR/.to_unalias
+MON_TO_UNHASH=$MON_DIR/.to_unhash
 
 # Aliases to the wrappers and appended PATH variables
 # This is used to avoid clutter in the shell rc file
