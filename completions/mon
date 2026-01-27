@@ -6,8 +6,6 @@ _mon_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
 
-    COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore refresh -h --help' -- "$cur"))
-
     function __is_inside() {
         local var="$1"
         shift
@@ -25,6 +23,11 @@ _mon_completion() {
             return 1
         fi
     }
+
+    if [[ "$length" -eq 2 ]]; then
+        COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore refresh -h --help' -- "$cur"))
+        return
+    fi
 
     if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then # mon register <?>...
         if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then      # mon register -<?>
