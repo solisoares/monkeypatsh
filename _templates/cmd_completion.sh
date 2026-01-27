@@ -1,6 +1,6 @@
 function _${cmd}_mon_completion() {
     # local word1="${COMP_WORDS[1]}"
-    # local cur="${COMP_WORDS[$COMP_CWORD]}"
+    local cur="${COMP_WORDS[$COMP_CWORD]}"
     # local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
     local length="${#COMP_WORDS[@]}"
 
