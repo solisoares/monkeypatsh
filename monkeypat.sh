@@ -7,7 +7,7 @@ _editor="editor"
 if [ -n "$EDITOR" ]; then
     _editor="$(basename $EDITOR)"
 fi
-_config_editor="$(grep -oP '(?<=^editor = )\w*' $MON_CONFIG_FILE)"
+_config_editor="$(cat $MON_CONFIG_FILE | grep -oE 'editor=\w+' | cut -d= -f2)"
 if [ -e "$MON_CONFIG_FILE" ] && [ -n "$_config_editor" ]; then
     _editor="$_config_editor"
 fi
@@ -539,7 +539,7 @@ function _list() {
     local cmd="$1"
     if _is_registered "$cmd"; then
         local location="$(_registered_dir $cmd)"
-        cat "$location/$cmd" | grep -oP '(?<=function _).*(?=\()' | grep -v 'default' | sort
+        cat "$location/$cmd" | grep -oE 'function _[^ (]+' | cut -d _ -f 2 | grep -v 'default' | sort
     else
         _not_found_msg "$cmd"
     fi

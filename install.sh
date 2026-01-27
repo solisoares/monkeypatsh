@@ -52,7 +52,7 @@ function add_monconfig_file() {
     cat <<-EOF >"$MON_CONFIG_FILE"
 	# Add your configs here
 	# Lines starting with '#' are comments
-	# editor = vim
+	# editor=vim
 	EOF
 
     _log "Created "$MON_CONFIG_FILE" file"
