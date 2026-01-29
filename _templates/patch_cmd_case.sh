@@ -1,5 +1,5 @@
 case "$_opt" in
-    ${opt})
+    "$(__clean_opt ${opt})")
         shift
         _${opt} "$@"
     ;;
