@@ -12,6 +12,22 @@ if [ -e "$MON_CONFIG_FILE" ] && [ -n "$_config_editor" ]; then
     _editor="$_config_editor"
 fi
 
+alias_title="$(
+    cat <<EOF
+╭───────╮
+│ Alias │
+├───────╯
+EOF
+)"
+
+bin_title="$(
+    cat <<EOF
+╭───────╮
+│  Bin  │
+├───────╯
+EOF
+)"
+
 function _not_found_msg() {
     local cmd="$1"
     local not_found='command'
@@ -382,9 +398,9 @@ function _check() {
     echo -e "$(cat $MON_CONFIG_FILE)\n"
 
     echo "============= registered ($MON_REGISTERED) ============="
-    echo "$alias_title"
+    echo -e "$alias_title"
     echo -e "$(ls -l $MON_REGISTERED_ALIAS)\n"
-    echo "$bin_title"
+    echo -e "$bin_title"
     echo -e "$(ls -l $MON_REGISTERED_BIN)\n"
 
     echo "============= completions ($MON_COMPLETIONS) ============="
@@ -443,14 +459,8 @@ function _edit() {
     fi
 }
 
-alias_title="[ Alias ]"
-bin_title="[  Bin  ]"
-
 function _list_alias() {
     local aliases="$(find "$MON_REGISTERED_ALIAS" -type f | xargs -I {} basename {} | sort)"
-    if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]] && [ -n "$aliases" ]; then
-        echo "$alias_title"
-    fi
     if [ -n "$aliases" ]; then
         echo "$aliases"
     fi
@@ -458,21 +468,30 @@ function _list_alias() {
 
 function _list_bin() {
     local bins="$(find "$MON_REGISTERED_BIN" -type f | xargs -I {} basename {} | sort)"
-    if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]] && [ -n "$bins" ]; then
-        echo "$bin_title"
-    fi
     if [ -n "$bins" ]; then
         echo "$bins"
     fi
 }
 
+function _pretty_bullet_cmd() {
+    printf "│› %s\n" "$1"
+}
+
+function _pretty_bullet_patch() {
+    printf "│  ╰─ %s\n" "$1"
+}
+
 function _list_full() {
     if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]]; then
-        local aliases="$(_list_alias --verbose)"
+        local aliases="$(_list_alias)"
+        local bins="$(_list_bin)"
 
-        local bins="$(_list_bin --verbose)"
         if [[ -n "$aliases" ]]; then
-            echo "$aliases"
+            echo -e "$alias_title"
+            local alias
+            echo "$aliases" | while read -r alias; do
+                _pretty_bullet_cmd "$alias"
+            done
         fi
 
         if [[ -n "$aliases" && -n "$bins" ]]; then
@@ -480,7 +499,11 @@ function _list_full() {
         fi
 
         if [[ -n "$bins" ]]; then
-            echo "$bins"
+            echo -e "$bin_title"
+            local bin
+            echo "$bins" | while read -r bin; do
+                _pretty_bullet_cmd "$bin"
+            done
         fi
     else
         _list_alias
@@ -526,20 +549,18 @@ function _list() {
                 return
             fi
 
-            echo "$title"
+            echo -e "$title"
             local cmd
-            for cmd in $cmds; do
+            while read -r cmd; do
+                _pretty_bullet_cmd "$cmd"
                 local patches="$(_list "$cmd")"
-                local text
-                if [ -z "$patches" ]; then
-                    text="$cmd"
-                else
-                    text="$cmd\n"
-                    text+="$(echo "$patches" | xargs -I {} echo ' └─' {})"
+                if [ -n "$patches" ]; then
+                    local patch
+                    while read -r patch; do
+                        _pretty_bullet_patch "$patch"
+                    done <<< "$patches"
                 fi
-                echo -e "$text"
-            done
-
+            done <<<"$cmds"
         }
 
         local alias_part="$(__list_verbose alias)"
