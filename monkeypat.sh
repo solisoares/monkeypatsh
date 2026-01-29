@@ -178,12 +178,27 @@ function _register() {
 
 }
 
-function _open_file_at_line() {
-    file="$1"
-    line="$2"
+function _open_file() {
+    local file="$1"
+    local pattern="$2"
+
+    function __get_pattern_line() {
+        local pattern="$1"
+        local file="$2"
+        local line="$(sed -n "/$pattern/{=;q;}" "$file")"
+        echo "$line"
+    }
+
+    local line="$(__get_pattern_line "$pattern" $location/$cmd)"
+
+    if [[ -z "$line" ]]; then
+        "$_editor" "$file"
+        return
+    fi
 
     if [ "$_editor" = "editor" ]; then
         "$_editor" "$file" # well, tried
+        return
     fi
 
     case "$_editor" in
@@ -267,7 +282,7 @@ function _patch() {
 
     if [ -z "$code" ]; then
         line="$(sed -n '/# put your code here/{=;q;}' "$location/$cmd")"
-        _open_file_at_line "$location/$cmd" "$line"
+        _open_file "$location/$cmd" "$line"
     fi
 
     echo "Patched: $cmd $opt"
@@ -379,22 +394,23 @@ function _check() {
 function _edit() {
     # Edit registered dir
     if [[ "$#" -eq 0 ]]; then
-        "$_editor" "$MON_REGISTERED"
+        _open_file "$MON_REGISTERED"
     fi
 
     # Edit monkeypatsh itself
     if [[ "$#" -eq 1 && "$1" = 'mon' ]]; then
-        "$_editor" "$MON_DIR/monkeypat.sh"
+        # "$_editor" "$MON_DIR/monkeypat.sh"
+        _open_file "$MON_DIR/monkeypat.sh"
         return 0
     fi
 
     # Edit .monrc and .monconfig
     if [[ "$1" = "-r" || "$1" = "--rc" ]]; then
-        "$_editor" "$MONRC_FILE"
+        _open_file "$MONRC_FILE"
         return 0
     fi
     if [[ "$1" = "-c" || "$1" = "--config" ]]; then
-        "$_editor" "$MON_CONFIG_FILE"
+        _open_file "$MON_CONFIG_FILE"
         return 0
     fi
 
@@ -408,7 +424,7 @@ function _edit() {
             exit 1
         fi
 
-        "$_editor" "$location/$cmd"
+        _open_file "$location/$cmd" '_default'
         return 0
 
     fi
@@ -418,8 +434,7 @@ function _edit() {
         local opt="$2"
         local opt_function="_$opt"
         if _has_patch "$cmd" "$opt"; then
-            local line=$(sed -n "/$opt_function/{=;q;}" "$location/$cmd")
-            _open_file_at_line "$location/$cmd" "$line"
+            _open_file "$location/$cmd" "$opt_function"
             return 0
         else
             _dont_has_patch_msg "$cmd" "$opt"
