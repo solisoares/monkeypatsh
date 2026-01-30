@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-function _${opt}() {
+function _mon_${opt}() {
     : # put your code here
 }

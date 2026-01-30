@@ -297,8 +297,8 @@ function _patch() {
         rm './tmpfile'
 
     if [ -z "$code" ]; then
-        line="$(sed -n '/# put your code here/{=;q;}' "$location/$cmd")"
-        _open_file "$location/$cmd" "$line"
+        local patch="_mon_$opt"
+        _open_file "$location/$cmd" "$patch"
     fi
 
     echo "Patched: $cmd $opt"
@@ -440,7 +440,7 @@ function _edit() {
             exit 1
         fi
 
-        _open_file "$location/$cmd" '_default'
+        _open_file "$location/$cmd" '_mon_default'
         return 0
 
     fi
@@ -448,7 +448,7 @@ function _edit() {
     # Edit patch
     if [ "$#" -eq 2 ]; then
         local opt="$2"
-        local opt_function="_$opt"
+        local opt_function="_mon_$opt"
         if _has_patch "$cmd" "$opt"; then
             _open_file "$location/$cmd" "$opt_function"
             return 0
@@ -575,7 +575,7 @@ function _list() {
     local cmd="$1"
     if _is_registered "$cmd"; then
         local location="$(_registered_dir $cmd)"
-        cat "$location/$cmd" | grep -oE 'function _[^ (]+' | cut -d _ -f 2 | grep -v 'default' | sort
+        cat "$location/$cmd" | grep -oE '_mon_[^ (]+' | sort -u | grep -v '_mon_default' | sed 's/_mon_//'
     else
         _not_found_msg "$cmd"
     fi

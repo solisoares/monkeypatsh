@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-function _default() {
+function _mon_default() {
     \${cmd} "$@" # default execution
 }
 
-function __clean_opt() {
+function _clean_opt() {
     local opt="$1"
 
     # If multiflag (-<flag1><flag2>...), sort and remove duplicates
@@ -15,9 +15,9 @@ function __clean_opt() {
     fi
 }
 
-_opt="$(__clean_opt $1)"
+_opt="$(_clean_opt $1)"
 case "$_opt" in
 *)
-    _default "$@"
+    _mon_default "$@"
     ;;
 esac
