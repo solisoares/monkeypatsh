@@ -198,6 +198,15 @@ function _open_file() {
     local file="$1"
     local pattern="$2"
 
+    if [[ -z "$pattern" ]]; then
+        if [[ -d "$file" ]]; then
+            (cd "$file" && "$_editor" "$file")
+        else
+            "$_editor" "$file"
+        fi
+        return
+    fi
+
     function __get_pattern_line() {
         local pattern="$1"
         local file="$2"
@@ -416,7 +425,7 @@ function _edit() {
     # Edit monkeypatsh itself
     if [[ "$#" -eq 1 && "$1" = 'mon' ]]; then
         # "$_editor" "$MON_DIR/monkeypat.sh"
-        _open_file "$MON_DIR/monkeypat.sh"
+        _open_file "$MON_DIR"
         return 0
     fi
 
@@ -558,7 +567,7 @@ function _list() {
                     local patch
                     while read -r patch; do
                         _pretty_bullet_patch "$patch"
-                    done <<< "$patches"
+                    done <<<"$patches"
                 fi
             done <<<"$cmds"
         }
