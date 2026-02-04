@@ -487,6 +487,10 @@ function _pretty_bullet_cmd() {
 }
 
 function _pretty_bullet_patch() {
+    printf "│  ├─ %s\n" "$1"
+}
+
+function _pretty_bullet_patch_last() {
     printf "│  ╰─ %s\n" "$1"
 }
 
@@ -562,12 +566,15 @@ function _list() {
             local cmd
             while read -r cmd; do
                 _pretty_bullet_cmd "$cmd"
-                local patches="$(_list "$cmd")"
-                if [ -n "$patches" ]; then
+                local patches
+                read -d '\n' -a patches <<<"$(_list "$cmd")"
+                if [ "${#patches[@]}" -gt 0 ]; then
                     local patch
-                    while read -r patch; do
+
+                    for patch in "${patches[@]:0:${#patches[@]}-1}"; do
                         _pretty_bullet_patch "$patch"
-                    done <<<"$patches"
+                    done
+                    _pretty_bullet_patch_last "${patches[-1]}"
                 fi
             done <<<"$cmds"
         }
