@@ -608,7 +608,7 @@ function _uninstall() {
 }
 
 function _backup() {
-    local backup_file=~/.mon.bak.tar
+    local backup_file=~/.mon.bak."$(date -I)".tar
 
     if [[ $# -eq 2 ]] && [[ "$1" = '-f' || "$1" = '--file' ]]; then
         backup_file="$2"
