@@ -315,10 +315,16 @@ function _patch() {
 
 function _has_confirmed() {
     local question="$1"
+    local default="${2:-y}"
+
+    local options='(y/N)'
+    if [[ "${default,,}" = 'y' ]]; then
+        options='(Y/n)'
+    fi
 
     local confirm
-    read -p "$question (y/N): " "${-+confirm}"
-    confirm="${confirm:-n}"
+    read -p "$question $options: " "${-+confirm}"
+    confirm="${confirm:-$default}"
 
     if [[ "${confirm,,}" =~ .*[n].* ]]; then
         # no: 1
@@ -363,10 +369,10 @@ function _unregister() {
 
         elif [[ $1 = "--all" ]]; then
             read -d '\n' -a args <<<"$(_list_full)"
-            question="Unregister all aliases and binaries?"
+            question="Unregister all commands?"
         fi
 
-        if ! _has_confirmed "$question"; then
+        if ! _has_confirmed "$question" 'n' ; then
             echo "Aborting unregister..."
             return 1
         fi
