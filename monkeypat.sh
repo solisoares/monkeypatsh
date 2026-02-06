@@ -294,7 +294,7 @@ function _patch() {
     cp "$location/$cmd" './tmpfile'
     patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
-        patch_function_template="$MON_TEMPLATES/patch_cmd_function_stub.sh"
+        patch_function_template="$MON_TEMPLATES/patch_cmd_function_empty.sh"
     fi
     patch_function="$(cat "$patch_function_template" | envsubst '${opt} ${code}')"
     awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$location/$cmd"
