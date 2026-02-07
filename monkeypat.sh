@@ -3,15 +3,6 @@
 SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source $SOURCE_DIR/common.sh
 
-_editor="editor"
-if [ -n "$EDITOR" ]; then
-    _editor="$(basename $EDITOR)"
-fi
-_config_editor="$(cat $MON_CONFIG_FILE | grep -oE 'editor=\w+' | cut -d= -f2)"
-if [ -e "$MON_CONFIG_FILE" ] && [ -n "$_config_editor" ]; then
-    _editor="$_config_editor"
-fi
-
 alias_title="$(
     cat <<EOF
 ╭───────╮
@@ -198,11 +189,27 @@ function _open_file() {
     local file="$1"
     local pattern="$2"
 
+    local config_editor
+    if [[ -f "$MON_CONFIG_FILE" ]]; then
+        config_editor="$(cat $MON_CONFIG_FILE | sed -nE '/^\s*#/! s/\s*editor\s*=\s*(\w+)\s*.*/\1/p')"
+        if [[ -n "$config_editor" ]] && ! command -v "$config_editor" >/dev/null; then
+            echo "error: config: '$config_editor' not found"
+            return 1
+        fi
+    fi
+
+    if [[ -z "$config_editor" ]] && [[ -n "$EDITOR" ]] && ! command -v "$EDITOR" >/dev/null; then
+        echo "error: EDITOR: '$EDITOR' not found"
+        return 1
+    fi
+
+    local editor="${config_editor:-${EDITOR:-vi}}"
+
     if [[ -z "$pattern" ]]; then
         if [[ -d "$file" ]]; then
-            (cd "$file" && "$_editor" "$file")
+            (cd "$file" && "$editor" "$file")
         else
-            "$_editor" "$file"
+            "$editor" "$file"
         fi
         return
     fi
@@ -217,27 +224,27 @@ function _open_file() {
     local line="$(__get_pattern_line "$pattern" $location/$cmd)"
 
     if [[ -z "$line" ]]; then
-        "$_editor" "$file"
+        "$editor" "$file"
         return
     fi
 
-    if [ "$_editor" = "editor" ]; then
-        "$_editor" "$file" # well, tried
+    if [ "$editor" = "editor" ]; then
+        "$editor" "$file" # well, tried
         return
     fi
 
-    case "$_editor" in
-    *vim | *nano | emacs)
-        "$_editor" +"$line" "$file"
+    case "$editor" in
+    vi | *vim | *nano | emacs)
+        "$editor" +"$line" "$file"
         ;;
     code)
-        "$_editor" --goto "$file":"$line"
+        "$editor" --goto "$file":"$line"
         ;;
     kate)
-        "$_editor" --line "$line" "$file"
+        "$editor" --line "$line" "$file"
         ;;
     subl)
-        "$_editor" "$file":"$line"
+        "$editor" "$file":"$line"
         ;;
     esac
 
@@ -372,7 +379,7 @@ function _unregister() {
             question="Unregister all commands?"
         fi
 
-        if ! _has_confirmed "$question" 'n' ; then
+        if ! _has_confirmed "$question" 'n'; then
             echo "Aborting unregister..."
             return 1
         fi
@@ -426,6 +433,7 @@ function _edit() {
     # Edit registered dir
     if [[ "$#" -eq 0 ]]; then
         _open_file "$MON_REGISTERED"
+        return 0
     fi
 
     # Edit monkeypatsh itself
