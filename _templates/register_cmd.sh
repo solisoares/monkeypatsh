@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function _mon_default() {
-    : # add here default execution
+    : # add default execution
 }
 
 function _clean_opt() {
@@ -15,9 +15,15 @@ function _clean_opt() {
     fi
 }
 
-_opt="$(_clean_opt $1)"
-case "$_opt" in
-*)
-    _mon_default "$@"
-    ;;
-esac
+function _main() {
+    _opt="$(_clean_opt $1)"
+    case "$_opt" in
+    *)
+        _mon_default "$@"
+        ;;
+    esac
+}
+
+if [[ "$0" = "${BASH_SOURCE[0]}" ]]; then
+    _main "$@"
+fi

@@ -605,7 +605,7 @@ function _list() {
     local cmd="$1"
     if _is_registered "$cmd"; then
         local location="$(_registered_dir $cmd)"
-        cat "$location/$cmd" | grep -oE '_mon_[^ (]+' | sort -u | grep -v '_mon_default' | sed 's/_mon_//'
+        (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*_mon_([\w\-]*)/\1/p')
     else
         _not_found_msg "$cmd"
     fi
