@@ -10,11 +10,11 @@ MON_TO_UNHASH=$MON_DIR/.to_unhash
 
 # Aliases to the wrappers and appended PATH variables
 # This is used to avoid clutter in the shell rc file
-MONRC_FILE=~/.monrc
+MON_RC_FILE=~/.monrc
 
-SHRC_FILE=~/.bashrc
+SHELL_RC_FILE=~/.bashrc
 if [[ "$SHELL" =~ .*zsh.* ]]; then
-    SHRC_FILE=~/.zshrc
+    SHELL_RC_FILE=~/.zshrc
 fi
 
 MON_CONFIG_FILE=~/.monconfig
@@ -23,14 +23,14 @@ DEVNULL=/dev/null
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-NOCOLOR='\033[0m'
+RESET_COLOR='\033[0m'
 
 function _log() {
-    message="[${GREEN}OK${NOCOLOR}] $@"
+    message="[${GREEN}OK${RESET_COLOR}] $@"
 
     if [ "$1" = '--error' ]; then
         shift
-        message="[${RED}ERROR${NOCOLOR}] $@"
+        message="[${RED}ERROR${RESET_COLOR}] $@"
     fi
 
     echo -e "$message"

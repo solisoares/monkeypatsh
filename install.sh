@@ -36,21 +36,21 @@ function copy_source_code() {
 
 function setup_monrc_file() {
     # Create monkeypatsh rc file
-    touch "$MONRC_FILE"
-    echo "export EDITOR" >>"$MONRC_FILE"
+    touch "$MON_RC_FILE"
+    echo "export EDITOR" >>"$MON_RC_FILE"
 
     # Source completions
-    echo "if [ -d $MON_COMPLETIONS ]; then source <(cat $MON_COMPLETIONS/*); fi" >>"$MONRC_FILE"
+    echo "if [ -d $MON_COMPLETIONS ]; then source <(cat $MON_COMPLETIONS/*); fi" >>"$MON_RC_FILE"
 
     # Unalias pending unregistered alias
-    echo "if [ -f $MON_TO_UNALIAS ]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MONRC_FILE"
+    echo "if [ -f $MON_TO_UNALIAS ]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MON_RC_FILE"
 
     # Unhash pending unregistered binaries
-    echo "if [ -f $MON_TO_UNHASH ]; then hash -d \$(cat $MON_TO_UNHASH) > /dev/null 2>&1 && rm $MON_TO_UNHASH; fi" >>"$MONRC_FILE"
+    echo "if [ -f $MON_TO_UNHASH ]; then hash -d \$(cat $MON_TO_UNHASH) > /dev/null 2>&1 && rm $MON_TO_UNHASH; fi" >>"$MON_RC_FILE"
 
-    echo "" >>"$MONRC_FILE"
+    echo "" >>"$MON_RC_FILE"
 
-    _log "Created "$MONRC_FILE" file"
+    _log "Created "$MON_RC_FILE" file"
 }
 
 function add_monconfig_file() {
@@ -64,21 +64,21 @@ function add_monconfig_file() {
 }
 
 function setup_shellrc_file() {
-    echo "# Source monkeypatsh" >>"$SHRC_FILE"
+    echo "# Source monkeypatsh" >>"$SHELL_RC_FILE"
 
     # Since the the aliases definition and PATH variables are in the monkeypatsh rc file
     # and not in the shell rc file, always source it on start up
-    echo "if [ -f $MONRC_FILE ]; then source $MONRC_FILE; fi" >>"$SHRC_FILE"
+    echo "if [ -f $MON_RC_FILE ]; then source $MON_RC_FILE; fi" >>"$SHELL_RC_FILE"
 
     # Monkeypatsh is itself an alias.
     # Each call to `mon` sources the monkeypatsh rc file to make commands
     # aliases up to date on each monkeypatsh registration and patch.
-    echo "alias mon='source "$MONRC_FILE" > $DEVNULL; $MON_DIR/monkeypat.sh'" >>"$SHRC_FILE"
+    echo "alias mon='source "$MON_RC_FILE" > $DEVNULL; $MON_DIR/monkeypat.sh'" >>"$SHELL_RC_FILE"
 
     # For commands registered as binary, export PATH so they can be found
-    echo "export PATH=\"$MON_REGISTERED_BIN:\$PATH\"" >>"$SHRC_FILE"
+    echo "export PATH=\"$MON_REGISTERED_BIN:\$PATH\"" >>"$SHELL_RC_FILE"
 
-    _log "Configured "$SHRC_FILE" file"
+    _log "Configured "$SHELL_RC_FILE" file"
 
 }
 

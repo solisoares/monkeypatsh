@@ -33,9 +33,9 @@ function rm_mondir() {
 }
 
 function rm_monrc_file() {
-    if [ -f "$MONRC_FILE" ]; then
-        rm $MONRC_FILE
-        _log "Removed $MONRC_FILE"
+    if [ -f "$MON_RC_FILE" ]; then
+        rm $MON_RC_FILE
+        _log "Removed $MON_RC_FILE"
     fi
 }
 
@@ -48,10 +48,10 @@ function rm_monconfig_file() {
 
 function update_shellrc_file() {
     # Remove setup configs from .rc file
-    sed -i '/monkeypatsh/d' $SHRC_FILE
-    sed -i '/monrc/d' $SHRC_FILE
-    sed -i '\|.mon/registered/bin|d' $SHRC_FILE
-    _log "Removed setup configs from $SHRC_FILE"
+    sed -i '/monkeypatsh/d' $SHELL_RC_FILE
+    sed -i '/monrc/d' $SHELL_RC_FILE
+    sed -i '\|.mon/registered/bin|d' $SHELL_RC_FILE
+    _log "Removed setup configs from $SHELL_RC_FILE"
 }
 
 echo "Uninstalling monkeypatsh..."

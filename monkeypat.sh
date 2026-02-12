@@ -152,7 +152,7 @@ function _register() {
         fi
 
         if [[ "$location" = "$MON_REGISTERED_ALIAS" ]]; then
-            echo "alias $cmd=$MON_REGISTERED_ALIAS/$cmd" >>$MONRC_FILE
+            echo "alias $cmd=$MON_REGISTERED_ALIAS/$cmd" >>$MON_RC_FILE
         fi
 
         if [ "$changed_location" -eq 1 ]; then
@@ -345,7 +345,7 @@ function _has_confirmed() {
 function _unalias() {
     # Will be unaliased on next refresh
     local cmd="$1"
-    sed -i -E "/alias\s+$cmd/d" "$MONRC_FILE"
+    sed -i -E "/alias\s+$cmd/d" "$MON_RC_FILE"
     echo "$cmd" >>"$MON_TO_UNALIAS"
 }
 
@@ -413,8 +413,8 @@ function _unregister() {
 }
 
 function _check() {
-    echo "============= .rc file ($MONRC_FILE) ============="
-    echo -e "$(cat $MONRC_FILE)\n"
+    echo "============= .rc file ($MON_RC_FILE) ============="
+    echo -e "$(cat $MON_RC_FILE)\n"
 
     echo "============= .config file ($MON_CONFIG_FILE) ============="
     echo -e "$(cat $MON_CONFIG_FILE)\n"
@@ -445,7 +445,7 @@ function _edit() {
 
     # Edit .monrc and .monconfig
     if [[ "$1" = "-r" || "$1" = "--rc" ]]; then
-        _open_file "$MONRC_FILE"
+        _open_file "$MON_RC_FILE"
         return 0
     fi
     if [[ "$1" = "-c" || "$1" = "--config" ]]; then
@@ -634,7 +634,7 @@ function _backup() {
         fi
     fi
 
-    local mon_rc="$(basename $MONRC_FILE)"
+    local mon_rc="$(basename $MON_RC_FILE)"
     local mon_config="$(basename $MON_CONFIG_FILE)"
     local mon_registered="$(basename $MON_DIR)/$(basename $MON_REGISTERED)"
 
@@ -666,14 +666,14 @@ function _restore() {
     local backup_file="$1"
 
     local tmp_dir="$(mktemp -d)"
-    local mon_rc_bak="$tmp_dir/$(basename $MONRC_FILE)"
+    local mon_rc_bak="$tmp_dir/$(basename $MON_RC_FILE)"
     local mon_config_bak="$tmp_dir/$(basename $MON_CONFIG_FILE)"
     local mon_registered_bak="$tmp_dir/$(basename $MON_REGISTERED)"
     local mon_completions_bak="$tmp_dir/$(basename $MON_COMPLETIONS)"
 
     tar -xf "$backup_file" -C "$tmp_dir"
 
-    cp "$mon_rc_bak" "$MONRC_FILE"
+    cp "$mon_rc_bak" "$MON_RC_FILE"
     cp "$mon_config_bak" "$MON_CONFIG_FILE"
     cp -r "$mon_registered_bak"/* "$MON_REGISTERED"
     cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
