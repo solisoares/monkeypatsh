@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -eE
-trap "_log --error 'Failed to uninstall monkeypatch'" ERR
+trap '_log --error "Failed to uninstall monkeypatsh"' ERR
 
 SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source $SOURCE_DIR/common.sh
@@ -14,9 +14,9 @@ function rm_mondir() {
     # If we have symlinked (probably a dev install)
     # we remove by parts
     if [ -L "$(echo $MON_DIR | sed 's:/*$::')" ]; then
-        # Remove registered folder (not present in source)
-        rm -r "$MON_REGISTERED"
-        # Remove all completions besides the one for `mon` (`completions/mon` is present in source)
+        # Remove stuff not present in source
+        rm -rf "$MON_REGISTERED" "$MON_TO_UNALIAS" "$MON_TO_UNHASH"
+        # Remove all completions not present in source
         find "$MON_COMPLETIONS" -type f | grep -v "$MON_COMPLETIONS/mon" | xargs -I {} rm {}
         # Remove symlink to source
         rm "$MON_DIR"
@@ -59,4 +59,5 @@ rm_mondir
 rm_monrc_file
 rm_monconfig_file
 update_shellrc_file
-echo "All done. Monkeypatsh has been uninstalled."
+echo "✓ Monkeypatsh has been uninstalled successfully."
+echo "➔ Refresh your session to apply changes."

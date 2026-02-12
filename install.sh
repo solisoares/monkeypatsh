@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 
 set -eE
-trap "_log --error 'Failed to install monkeypatch'" ERR
+trap '_log --error "Failed to install monkeypatsh"' ERR
 
 SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source "$SOURCE_DIR/common.sh"
 
 function copy_source_code() {
     local msg
+
+    if [[ -d "$MON_DIR" ]]; then
+        echo "$0: line $LINENO: destination already exist"
+        return 1
+    fi
 
     if [ "$devmode" -eq 1 ]; then
         # Dev install: symlink source
@@ -87,5 +92,5 @@ copy_source_code
 setup_monrc_file
 add_monconfig_file
 setup_shellrc_file
-echo "Monkeypatsh has been installed successfully."
-echo "Refresh your session and run 'mon --help'."
+echo "✓ Monkeypatsh has been installed successfully."
+echo "➔ Refresh your session to apply changes."
