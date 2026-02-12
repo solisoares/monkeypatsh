@@ -251,8 +251,8 @@ function _open_file() {
 }
 
 function _has_patch() {
-    cmd="$1"
-    sub="$2"
+    local cmd="$1"
+    local sub="$2"
     if _list "$cmd" | grep -- "$sub" >/dev/null; then
         return 0
     fi
@@ -299,15 +299,15 @@ function _patch() {
 
     # Add patch function
     cp "$location/$cmd" './tmpfile'
-    patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
+    local patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
         patch_function_template="$MON_TEMPLATES/patch_cmd_function_empty.sh"
     fi
-    patch_function="$(cat "$patch_function_template" | envsubst '${opt} ${code}')"
+    local patch_function="$(cat "$patch_function_template" | envsubst '${opt} ${code}')"
     awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$location/$cmd"
 
     # Add patch case
-    patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${opt}')"
+    local patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${opt}')"
     cp "$location/$cmd" './tmpfile'
     awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$location/$cmd" &&
         rm './tmpfile'
@@ -364,7 +364,6 @@ function _unregister() {
 
     local args=()
     local question
-    local type
     if [[ $# -eq 1 ]] && [[ $1 = "--alias" || $1 = "--bin" || $1 = "--all" ]]; then
         if [[ $1 = "--alias" ]]; then
             read -d '\n' -a args <<<"$(_list_alias)"
@@ -758,7 +757,7 @@ EOF
 }
 
 function mon() {
-    mon_cmd="$1"
+    local mon_cmd="$1"
     if [ -z "$mon_cmd" ]; then
         _help
         return
