@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 function _mon_default() {
-    : # add default execution
+    _not_implemented_msg
+    return 1
 }
 
 function _clean_opt() {
@@ -15,11 +16,31 @@ function _clean_opt() {
     fi
 }
 
+function _not_found_msg() {
+    local opt="$1"
+    local kind='command'
+    if [[ "$opt" == -* ]]; then kind='option'; fi
+    echo "${cmd}: '$_opt' is not a foo $kind"
+}
+
+function _not_implemented_msg() {
+    local opt="$1"
+    if [[ -z "$opt" ]]; then
+        echo "${cmd}: default execution not implemented"
+    else
+        echo "${cmd}: '$opt' not implemented"
+    fi
+}
+
 function _main() {
     _opt="$(_clean_opt $1)"
     case "$_opt" in
-    *)
+    '')
         _mon_default "$@"
+        ;;
+    *)
+        _not_found_msg "$_opt"
+        return 1
         ;;
     esac
 }
