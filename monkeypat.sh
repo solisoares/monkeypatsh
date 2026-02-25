@@ -159,25 +159,24 @@ function _register() {
             continue
         fi
 
-        touch "$location/$cmd"
+        local completion_template
+        local register_template
 
-        export cmd
-
-        # Wrapper template
-        local register_template="$MON_TEMPLATES/register_new_cmd.sh"
         if which "$cmd" >/dev/null; then
             register_template="$MON_TEMPLATES/register_existent_cmd.sh"
+            completion_template="$MON_TEMPLATES/existent_cmd_completion.sh"
+        else
+            register_template="$MON_TEMPLATES/register_new_cmd.sh"
+            completion_template="$MON_TEMPLATES/new_cmd_completion.sh"
         fi
 
-        # Completion template
-        local completion_template="$MON_TEMPLATES/new_cmd_completion.sh"
-        if ! which "$cmd" >/dev/null; then
-            # add completion only for new commands for now
-            cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
-        fi
-
+        export cmd
+        # Render registered template
         cat "$register_template" | envsubst '${cmd}' >"$location/$cmd"
         chmod +x "$location/$cmd"
+        # Render completion template
+        cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
+
         echo "Registered command '$cmd'"
     done
 

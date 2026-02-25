@@ -1,7 +1,5 @@
-function _${cmd}_mon_completion() {
-    # local word1="${COMP_WORDS[1]}"
+function _mon_${cmd}_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"
-    # local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
     local length="${#COMP_WORDS[@]}"
 
     local patches="$(mon list ${cmd})"
@@ -13,4 +11,4 @@ function _${cmd}_mon_completion() {
 
 }
 
-complete -o nosort -F _${cmd}_mon_completion ${cmd}
+complete -o nosort -F _mon_${cmd}_completion ${cmd}

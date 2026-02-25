@@ -6,44 +6,32 @@ _mon_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
 
-    function __is_inside() {
-        local var="$1"
-        shift
-
-        local is_inside=0
-
-        local item
-        for item in "$@"; do
-            [[ "$var" = "$item" ]] && is_inside=1
-        done
-
-        if [[ "$is_inside" -eq 1 ]]; then
-            return 0
-        else
-            return 1
-        fi
-    }
-
     if [[ "$length" -eq 2 ]]; then
         COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore refresh -h --help' -- "$cur"))
         return
     fi
 
-    if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then # mon register <?>...
-        if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then      # mon register -<?>
+    if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then # mon register <cur>...
+        if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then      # mon register <cur-flag>
             COMPREPLY=($(compgen -W "--alias --bin" -- "$cur"))
             return
         fi
 
-        if [[ "$word2" = "--alias" ]]; then # mon register --alias <cmd?>...
+        if [[ "$length" -ge 3 && "$word2" = "--alias" ]]; then # mon register --alias <cur-cmd>...
             local bins="$(mon list --bin)"
-            COMPREPLY=($(compgen -W "$bins" -- "$cur"))
+            # complete with system binaries and aliases
+            COMPREPLY=($(compgen -c -W "$bins" -- "$cur"))
             return
         fi
 
-        if [[ "$word2" = "--bin" ]]; then # mon register --bin <cmd?>...
+        if [[ "$length" -ge 3 && "$word2" = "--bin" ]]; then # mon register --bin <cur-cmd>...
             local alias="$(mon list --alias)"
             COMPREPLY=($(compgen -W "$alias" -- "$cur"))
+            return
+        fi
+
+        if [[ "$length" -ge 3 && ! "$cur" =~ ^- ]]; then # mon register <cur-cmd>...
+            COMPREPLY=($(compgen -c -- "$cur"))
             return
         fi
 
@@ -65,7 +53,7 @@ _mon_completion() {
             return
         fi
 
-        if [[ "$length" -eq 4 ]] && __is_inside "$prev" "--all" "--alias" "--bin"; then # mon unregister --all/--alias/--bin <>
+        if [[ "$length" -eq 4 ]] && [[ "$prev" = "--all" || "$prev" = "--alias" || "$prev" = "--bin" ]]; then # mon unregister --all/--alias/--bin <>
             COMPREPLY=()
             return
         fi
