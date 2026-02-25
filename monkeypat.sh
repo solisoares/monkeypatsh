@@ -381,7 +381,7 @@ function _unregister() {
             question="Unregister all commands?"
         fi
 
-        if ! _has_confirmed "$question" 'n'; then
+        if ! _has_confirmed "$question" 'y'; then
             echo "Aborting unregister..."
             return 1
         fi
