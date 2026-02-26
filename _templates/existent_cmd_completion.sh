@@ -1,4 +1,4 @@
-if [[ -n "$__mon_${cmd}_orig_completion_func" ]]; then
+if declare -F _mon_${cmd}_completion >/dev/null; then
     return
 fi
 

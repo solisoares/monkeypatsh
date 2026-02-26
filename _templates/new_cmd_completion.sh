@@ -1,3 +1,7 @@
+if [[ "$(type -t _mon_${cmd}_completion)" = 'function' ]]; then
+    return
+fi
+
 function _mon_${cmd}_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local length="${#COMP_WORDS[@]}"

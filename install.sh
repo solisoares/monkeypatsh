@@ -40,7 +40,7 @@ function setup_monrc_file() {
     echo "export EDITOR" >>"$MON_RC_FILE"
 
     # Source completions
-    echo "if [ -d $MON_COMPLETIONS ]; then source <(cat $MON_COMPLETIONS/*); fi" >>"$MON_RC_FILE"
+    echo "if [ -d $MON_COMPLETIONS ]; then for file in $MON_COMPLETIONS/*; do source \"\$file\"; done; fi" >>"$MON_RC_FILE"
 
     # Unalias pending unregistered alias
     echo "if [ -f $MON_TO_UNALIAS ]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MON_RC_FILE"
