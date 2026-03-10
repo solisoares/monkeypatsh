@@ -49,7 +49,7 @@ _mon_completion() {
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
 
         if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then # mon unregister -<?>
-            COMPREPLY=($(compgen -W "--all --alias --bin" -- "$cur"))
+            COMPREPLY=($(compgen -W "-A -a -b --all --alias --bin" -- "$cur"))
             return
         fi
 

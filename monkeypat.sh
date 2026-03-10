@@ -366,16 +366,16 @@ function _unregister() {
 
     local args=()
     local question
-    if [[ $# -eq 1 ]] && [[ $1 = "--alias" || $1 = "--bin" || $1 = "--all" ]]; then
-        if [[ $1 = "--alias" ]]; then
+    if [[ $# -eq 1 ]] && [[ $1 = "--alias" || "$1" = "-a" || $1 = "--bin"  || "$1" = "-b"|| $1 = "--all"  || "$1" = "-A" ]]; then
+        if [[ $1 = "--alias"  || "$1" = "-a" ]]; then
             read -d '\n' -a args <<<"$(_list_alias)"
             question="Unregister all aliases?"
 
-        elif [[ $1 = "--bin" ]]; then
+        elif [[ $1 = "--bin"  || "$1" = "-b" ]]; then
             read -d '\n' -a args <<<"$(_list_bin)"
             question="Unregister all binaries?"
 
-        elif [[ $1 = "--all" ]]; then
+        elif [[ $1 = "--all"  || "$1" = "-A" ]]; then
             read -d '\n' -a args <<<"$(_list_full)"
             question="Unregister all commands?"
         fi
@@ -715,9 +715,9 @@ Commands available:
                                                 mon patch ls --bar
 
     unregister <cmd>...                  - Unregister commands. This deletes the wrapper for that command.
-               | --all                     By providing `--all`, `--alias` or `--bin` you can unregister all commands at once,
-               | --alias                   all alias, or all binaries.
-               | --bin
+               | -A | --all                By providing `--all`, `--alias` or `--bin` and their respective short versions, you can unregister
+               | -a | --alias              all commands at once, all alias, or all binaries.
+               | -b | --bin
 
     check                                - [DEV] Quick sanity check.
 
