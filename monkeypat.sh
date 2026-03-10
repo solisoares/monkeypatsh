@@ -252,7 +252,7 @@ function _open_file() {
 function _has_patch() {
     local cmd="$1"
     local sub="$2"
-    if _list "$cmd" | grep -- "$sub" >/dev/null; then
+    if [[ "$(_list "$cmd" | grep -- "^$sub$")" = "$sub" ]]; then
         return 0
     fi
     return 1
