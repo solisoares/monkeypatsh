@@ -84,11 +84,11 @@ function _register() {
 
     local location
     case "$1" in
-    --bin)
+    -b|--bin)
         location="$MON_REGISTERED_BIN"
         shift
         ;;
-    --alias)
+    -a|--alias)
         location="$MON_REGISTERED_ALIAS"
         shift
         ;;
@@ -694,8 +694,8 @@ function _help() {
     cat <<'EOF'
 Commands available:
     register <cmd>...                    - Register commands to be wrapped with monkeypatsh, as aliases or binaries.
-             | --alias <cmd>...            If no flag is provided, or the flag `--alias` is provided, register commands as aliases.
-             | --bin <cmd>...              If the flag `--bin` is provided, register commands as binaries (executables available via PATH).
+             | [-a | --alias] <cmd>...     If no flag is provided, or the flag `--alias` is provided, register commands as aliases.
+             | [-b | --bin] <cmd>...       If the flag `--bin` is provided, register commands as binaries (executables available via PATH).
                                            Since aliases cannot be called by default in scripts, they are a great choice for
                                            patching existing commands in interactive shells. Like registering git, ls, ...
                                            Binaries on the other hand, can be called inside scripts by default, and therefore

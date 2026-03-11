@@ -13,11 +13,11 @@ _mon_completion() {
 
     if [[ "$word1" = 'register' && "$length" -ge 3 ]]; then # mon register <cur>...
         if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then      # mon register <cur-flag>
-            COMPREPLY=($(compgen -W "--alias --bin" -- "$cur"))
+            COMPREPLY=($(compgen -W "-a -b --alias --bin" -- "$cur"))
             return
         fi
 
-        if [[ "$length" -ge 3 && "$word2" = "--alias" ]]; then # mon register --alias <cur-cmd>...
+        if [[ "$length" -ge 3 ]] && [[ "$word2" = "-a" || "$word2" = "--alias" ]]; then # mon register --alias <cur-cmd>...
             local bins="$(mon list --bin)"
             # complete with system binaries and aliases
             COMPREPLY=($(compgen -c -W "$bins" -- "$cur"))
