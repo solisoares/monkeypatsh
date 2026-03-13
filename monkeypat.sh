@@ -164,10 +164,12 @@ function _register() {
 
         if which "$cmd" >/dev/null; then
             register_template="$MON_TEMPLATES/register_existent_cmd.sh"
-            completion_template="$MON_TEMPLATES/existent_cmd_completion.sh"
+            completion_template_bash="$MON_TEMPLATES_COMPLETIONS_BASH/existent_cmd_completion.sh"
+            completion_template_zsh="$MON_TEMPLATES_COMPLETIONS_ZSH/existent_cmd_completion.sh"
         else
             register_template="$MON_TEMPLATES/register_new_cmd.sh"
-            completion_template="$MON_TEMPLATES/new_cmd_completion.sh"
+            completion_template_bash="$MON_TEMPLATES_COMPLETIONS_BASH/new_cmd_completion.sh"
+            completion_template_zsh="$MON_TEMPLATES_COMPLETIONS_ZSH/new_cmd_completion.sh"
         fi
 
         export cmd
@@ -175,7 +177,9 @@ function _register() {
         cat "$register_template" | envsubst '${cmd}' >"$location/$cmd"
         chmod +x "$location/$cmd"
         # Render completion template
-        cat "$completion_template" | envsubst '${cmd}' >"$MON_COMPLETIONS/$cmd"
+        cat "$completion_template_bash" | envsubst '${cmd}' >"$MON_COMPLETIONS_BASH/$cmd"
+        # TODO: need to specify the registered completions in zsh
+        # cat "$completion_template_zsh" | envsubst '${cmd}' >"$MON_COMPLETIONS_ZSH/$cmd"
 
         echo "Registered command '$cmd'"
     done
@@ -405,7 +409,8 @@ function _unregister() {
 
         local location="$(_registered_dir $cmd)"
         rm "$location/$cmd"
-        rm -f "$MON_COMPLETIONS/$cmd"
+        rm -f "$MON_COMPLETIONS_BASH/$cmd"
+        rm -f "$MON_COMPLETIONS_ZSH/$cmd"
         echo "Unregistered command '$cmd'"
     done
 
@@ -426,8 +431,11 @@ function _check() {
     echo -e "$bin_title"
     echo -e "$(ls -l $MON_REGISTERED_BIN)\n"
 
-    echo "============= completions ($MON_COMPLETIONS) ============="
-    echo -e "$(ls -l $MON_COMPLETIONS)\n"
+    echo "============= completions ($MON_COMPLETIONS_BASH) ============="
+    echo -e "$(ls -l $MON_COMPLETIONS_BASH)\n"
+
+    echo "============= completions ($MON_COMPLETIONS_ZSH) ============="
+    echo -e "$(ls -l $MON_COMPLETIONS_ZSH)\n"
 }
 
 function _edit() {
@@ -643,12 +651,21 @@ function _backup() {
     # 	.monrc
     # 	.monconfig
     # 	registered/
-    # 		\_ <cmd_1>
-    # 		\_ ...
+    # 		\_ alias
+    # 		    \_ <cmd_1>
+    # 		    \_ ...
+    # 		\_ bin
+    # 		    \_ <cmd_2>
+    # 		    \_ ...
     #   completions/
-    #		\_ mon
-    # 		\_ <cmd_1>
-    # 		\_ ...
+    #       \_ bash
+    #           \_ mon
+    #           \_ <cmd_1>
+    #           \_ ...
+    #       \_ zsh
+    #           \_ mon
+    #           \_ <cmd_1>
+    #           \_ ...
     tar -cf "$backup_file" -C ~ "$mon_rc" "$mon_config"
     tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_REGISTERED)" >/dev/null 2>&1
     tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_COMPLETIONS)" >/dev/null 2>&1

@@ -11,6 +11,8 @@ function _mon_${cmd}_completion() {
     local length="${#COMP_WORDS[@]}"
 
     # Set COMPREPLY with original complete function
+    __mon_${cmd}_orig_completion="$(complete -p ${cmd} 2>/dev/null)"
+    __mon_${cmd}_orig_completion_no_func="$(echo "$__mon_${cmd}_orig_completion" | sed -r 's/complete\s+(.*?\s+)-F\s+.*/\1/' | sed 's/complete/compgen/')"
     ${__mon_${cmd}_orig_completion_func:-_minimal}
 
     # Update COMPREPLY with the patches

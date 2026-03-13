@@ -2,5 +2,7 @@ tmp/
 
 registered/
 
-completions/*
-!completions/mon
+completions/bash/*
+!completions/bash/mon
+completions/zsh/*
+!completions/zsh/mon

@@ -1,0 +1,6 @@
+_mon_completion() {
+    _arguments '1:command:(register patch unregister check edit list uninstall backup restore refresh)' \
+        '(-h --help)'{-h,--help}'[show help]'
+}
+
+compdef _mon_completion mon
