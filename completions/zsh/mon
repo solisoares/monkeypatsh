@@ -3,4 +3,5 @@ _mon_completion() {
         '(-h --help)'{-h,--help}'[show help]'
 }
 
+compdef _mon_completion monkeypat.sh
 compdef _mon_completion mon

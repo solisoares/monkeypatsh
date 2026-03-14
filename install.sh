@@ -37,22 +37,34 @@ function copy_source_code() {
 function setup_monrc_file() {
     # Create monkeypatsh rc file
     touch "$MON_RC_FILE"
+
+    echo "# The following is here to avoid clutter in the main rc file" >>"$MON_RC_FILE"
+
+    # The `mon` command is itself an alias.
+    # Each call to `mon` sources the monkeypatsh rc file to make aliases up
+    # to date on each monkeypatsh registration.
+    echo "alias mon='source "$MON_RC_FILE"; $MON_DIR/monkeypat.sh'" >>"$MON_RC_FILE"
+
+    # Export monkeypat.sh. This is mainly so we can add completion to the `mon`
+    # alias in zsh without forcing `complete_aliases` globally.
+    echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_DIR/monkeypat.sh:\$PATH\"; fi" >>"$MON_RC_FILE"
+
+    # For commands registered as binary, export PATH so they can be found
+    echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_REGISTERED_BIN:\$PATH\"; fi" >>"$MON_RC_FILE"
+
     echo "export EDITOR" >>"$MON_RC_FILE"
+    echo "" >>"$MON_RC_FILE"
+
+    echo "# The following is here to be refreshed on every registration (it actually refreshes on on every \`mon\` call)" >>"$MON_RC_FILE"
 
     # Source completions
     echo "if [[ -d $MON_COMPLETIONS_BASH && -n \$BASH ]]; then for file in $MON_COMPLETIONS_BASH/*; do source \"\$file\"; done; fi" >>"$MON_RC_FILE"
     echo "if [[ -d $MON_COMPLETIONS_ZSH && -n \$ZSH_NAME ]]; then for file in $MON_COMPLETIONS_ZSH/*; do source \"\$file\"; done; fi" >>"$MON_RC_FILE"
 
-    # Make mon completion work in zsh.
-    # TODO: Since mon is an alias itself, I couldn't find a way to
-    # complete it without setting the global option `complete_aliases`.
-    echo "if [[ -n \$ZSH_NAME ]]; then setopt complete_aliases; fi" >>"$MON_RC_FILE"
-
     # Unalias pending unregistered alias
-    echo "if [ -f $MON_TO_UNALIAS ]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MON_RC_FILE"
-
+    echo "if [[ -f $MON_TO_UNALIAS ]]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MON_RC_FILE"
     # Unhash pending unregistered binaries
-    echo "if [ -f $MON_TO_UNHASH ]; then hash -d \$(cat $MON_TO_UNHASH) > /dev/null 2>&1 && rm $MON_TO_UNHASH; fi" >>"$MON_RC_FILE"
+    echo "if [[ -f $MON_TO_UNHASH ]]; then hash -d \$(cat $MON_TO_UNHASH) > /dev/null 2>&1 && rm $MON_TO_UNHASH; fi" >>"$MON_RC_FILE"
 
     echo "" >>"$MON_RC_FILE"
 
@@ -71,19 +83,11 @@ function add_monconfig_file() {
 
 function setup_shellrc_files() {
     for shell_rc_file in "${SHELL_RC_FILES[@]}"; do
-        echo "# Source monkeypatsh" >>"$shell_rc_file"
+        echo "" >>"$shell_rc_file"
 
         # Since the the aliases definition and PATH variables are in the monkeypatsh rc file
         # and not in the shell rc file, always source it on start up
         echo "if [ -f $MON_RC_FILE ]; then source $MON_RC_FILE; fi" >>"$shell_rc_file"
-
-        # Monkeypatsh is itself an alias.
-        # Each call to `mon` sources the monkeypatsh rc file to make commands
-        # aliases up to date on each monkeypatsh registration and patch.
-        echo "alias mon='source "$MON_RC_FILE" > $DEVNULL; $MON_DIR/monkeypat.sh'" >>"$shell_rc_file"
-
-        # For commands registered as binary, export PATH so they can be found
-        echo "export PATH=\"$MON_REGISTERED_BIN:\$PATH\"" >>"$shell_rc_file"
 
         _log "Configured "$shell_rc_file" file"
     done
@@ -109,7 +113,6 @@ cat <<'EOF'
                                                   ██████████████████
                                                      ████████████
 EOF
-
 
 printf "Installing monkeypatsh"
 for col in $(seq 1 53); do

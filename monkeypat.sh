@@ -84,11 +84,11 @@ function _register() {
 
     local location
     case "$1" in
-    -b|--bin)
+    -b | --bin)
         location="$MON_REGISTERED_BIN"
         shift
         ;;
-    -a|--alias)
+    -a | --alias)
         location="$MON_REGISTERED_ALIAS"
         shift
         ;;
@@ -370,16 +370,16 @@ function _unregister() {
 
     local args=()
     local question
-    if [[ $# -eq 1 ]] && [[ $1 = "--alias" || "$1" = "-a" || $1 = "--bin"  || "$1" = "-b"|| $1 = "--all"  || "$1" = "-A" ]]; then
-        if [[ $1 = "--alias"  || "$1" = "-a" ]]; then
+    if [[ $# -eq 1 ]] && [[ $1 = "--alias" || "$1" = "-a" || $1 = "--bin" || "$1" = "-b" || $1 = "--all" || "$1" = "-A" ]]; then
+        if [[ $1 = "--alias" || "$1" = "-a" ]]; then
             read -d '\n' -a args <<<"$(_list_alias)"
             question="Unregister all aliases?"
 
-        elif [[ $1 = "--bin"  || "$1" = "-b" ]]; then
+        elif [[ $1 = "--bin" || "$1" = "-b" ]]; then
             read -d '\n' -a args <<<"$(_list_bin)"
             question="Unregister all binaries?"
 
-        elif [[ $1 = "--all"  || "$1" = "-A" ]]; then
+        elif [[ $1 = "--all" || "$1" = "-A" ]]; then
             read -d '\n' -a args <<<"$(_list_full)"
             question="Unregister all commands?"
         fi

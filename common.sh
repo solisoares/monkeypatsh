@@ -26,8 +26,6 @@ fi
 
 MON_CONFIG_FILE=~/.monconfig
 
-DEVNULL=/dev/null
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 RESET_COLOR='\033[0m'
