@@ -17,7 +17,7 @@ function _mon_${cmd}_completion() {
 
     # Update COMPREPLY with the patches
     if [ "$length" -eq 2 ]; then
-        local patches="$(mon list ${cmd})"
+        local patches="$(monkeypat.sh list ${cmd})"
         if [[ "$cur" =~ ^- ]]; then
             patches="$(echo "$patches" | sed '/^[^-]/d')" # show flags
         else
@@ -29,4 +29,4 @@ function _mon_${cmd}_completion() {
 }
 
 # Complete cmd with original compspec and with our completion
-complete -o nosort $__mon_${cmd}_orig_completion_no_func -F _mon_${cmd}_completion ${cmd}
+complete $__mon_${cmd}_orig_completion_no_func -F _mon_${cmd}_completion ${cmd}

@@ -43,11 +43,10 @@ function setup_monrc_file() {
     # The `mon` command is itself an alias.
     # Each call to `mon` sources the monkeypatsh rc file to make aliases up
     # to date on each monkeypatsh registration.
-    echo "alias mon='source "$MON_RC_FILE"; $MON_DIR/monkeypat.sh'" >>"$MON_RC_FILE"
+    echo "alias mon='source "$MON_RC_FILE"; $MON_BIN'" >>"$MON_RC_FILE"
 
-    # Export monkeypat.sh. This is mainly so we can add completion to the `mon`
-    # alias in zsh without forcing `complete_aliases` globally.
-    echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_DIR/monkeypat.sh:\$PATH\"; fi" >>"$MON_RC_FILE"
+    # Export monkeypat.sh so we can reference it in completion functions
+    echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_DIR/src/:\$PATH\"; fi" >>"$MON_RC_FILE"
 
     # For commands registered as binary, export PATH so they can be found
     echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_REGISTERED_BIN:\$PATH\"; fi" >>"$MON_RC_FILE"

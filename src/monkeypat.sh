@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
-source $SOURCE_DIR/common.sh
+source $SOURCE_DIR/../common.sh
 
 alias_title="$(
     cat <<EOF

@@ -12,6 +12,8 @@ MON_COMPLETIONS_ZSH=$MON_DIR/completions/zsh
 MON_TO_UNALIAS=$MON_DIR/.to_unalias
 MON_TO_UNHASH=$MON_DIR/.to_unhash
 
+MON_BIN=$MON_DIR/src/monkeypat.sh
+
 # Aliases to the wrappers and appended PATH variables
 # This is used to avoid clutter in the shell rc file
 MON_RC_FILE=~/.monrc
