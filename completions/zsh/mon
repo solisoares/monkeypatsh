@@ -1,6 +1,139 @@
 _mon_completion() {
-    _arguments '1:command:(register patch unregister check edit list uninstall backup restore refresh)' \
-        '(-h --help)'{-h,--help}'[show help]'
+    local curcontext="$curcontext" state line
+    local -a subcmds
+
+    subcmds=(
+        'register:Register commands'
+        'patch:Patch a registered command'
+        'unregister:Unregister a command'
+        'edit:Edit a command or config'
+        'list:List registered commands'
+        'uninstall:Uninstall'
+        'backup:Backup configuration'
+        'restore:Restore configuration'
+        'refresh:Refresh commands'
+        'help:Show help'
+        # '-h:Show help'
+        # '--help:Show help'
+    )
+
+    local word1="${words[2]:-}"
+    local word2="${words[3]:-}"
+    local length="${#words[@]}"
+    local prev="${words[$(( ${CURRENT:-1} - 1 ))]:-}"
+    local cur="${words[${CURRENT:-$length}]:-}"
+
+    # Subcommand completion
+    if (( length == 2 )); then
+        _describe -t commands 'mon command' subcmds
+        _arguments '-h[Show help]' '--help[Show help]'
+        return
+    fi
+
+    case "$word1" in
+        register)
+            if (( length == 3 )) && [[ "$cur" == -* ]]; then
+                _values 'flags' '-a[Alias]' '-b[Binary]' '--alias[Alias]' '--bin[Binary]'
+                return
+            fi
+
+            if (( length >= 3 )) && [[ "$word2" == -a || "$word2" == --alias ]]; then
+                local -a bins=( ${(f)"$(monkeypat.sh list --bin)"} )
+                _alternative \
+                    "bins:registered binaries:compadd -a bins" \
+                    "commands:system commands:_command_names"
+                return
+            fi
+
+            if (( length >= 3 )) && [[ "$word2" == --bin ]]; then
+                local -a aliases=( ${(f)"$(monkeypat.sh list --alias)"} )
+                compadd -a aliases
+                return
+            fi
+
+            if (( length >= 3 )) && [[ "$cur" != -* ]]; then
+                _command_names
+                return
+            fi
+            ;;
+
+        patch)
+            if (( length == 3 )); then
+                local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                compadd -a registered
+            fi
+            # length >= 4: no completions
+            ;;
+
+        unregister)
+            if (( length == 3 )) && [[ "$cur" == -* ]]; then
+                _values 'flags' \
+                    '-A[All]' '-a[Alias]' '-b[Binary]' \
+                    '--all[All]' '--alias[Alias]' '--bin[Binary]'
+                return
+            fi
+
+            if (( length > 3 )) && [[ \
+                "$prev" == -A || "$prev" == -a || "$prev" == -b || \
+                "$prev" == --all || "$prev" == --alias || "$prev" == --bin \
+            ]]; then
+                return
+            fi
+
+            if (( length == 3 )); then
+                local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                compadd -a registered
+            fi
+            ;;
+
+        edit)
+            if (( length == 3 )); then
+                if [[ "$cur" == -* ]]; then
+                    _values 'flags' '-c[Config]' '--config[Config]' '-r[RC file]' '--rc[RC file]'
+                else
+                    local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                    compadd -a registered
+                fi
+                return
+            fi
+
+            if (( length == 4 )) && [[ "$prev" != -* ]]; then
+                local -a patches=( ${(f)"$(monkeypat.sh list "$prev")"} )
+                compadd -a patches
+                return
+            fi
+            ;;
+
+        list)
+            if (( length == 3 )); then
+                if [[ "$cur" == -* ]]; then
+                    _values 'flags' \
+                        '-a[Alias]' '--alias[Alias]' \
+                        '-b[Binary]' '--bin[Binary]' \
+                        '-f[Flat]' '--flat[Flat]' \
+                        '-r[Recursive]' '--recursive[Recursive]'
+                else
+                    local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                    compadd -a registered
+                fi
+            fi
+            # length >= 4: no completions
+            ;;
+
+        backup)
+            if (( length == 3 )); then
+                _values 'flags' '-f[File]' '--file[File]'
+            elif (( length == 4 )); then
+                _files
+            fi
+            ;;
+
+        restore)
+            if (( length == 3 )); then
+                _files
+            fi
+            ;;
+    esac
 }
 
 compdef _mon_completion monkeypat.sh

@@ -178,8 +178,7 @@ function _register() {
         chmod +x "$location/$cmd"
         # Render completion template
         cat "$completion_template_bash" | envsubst '${cmd}' >"$MON_COMPLETIONS_BASH/$cmd"
-        # TODO: need to specify the registered completions in zsh
-        # cat "$completion_template_zsh" | envsubst '${cmd}' >"$MON_COMPLETIONS_ZSH/$cmd"
+        cat "$completion_template_zsh" | envsubst '${cmd}' >"$MON_COMPLETIONS_ZSH/$cmd"
 
         echo "Registered command '$cmd'"
     done
@@ -419,6 +418,7 @@ function _unregister() {
 }
 
 function _check() {
+    # Quick sanity check.
     echo "============= .rc file ($MON_RC_FILE) ============="
     echo -e "$(cat $MON_RC_FILE)\n"
 
@@ -736,8 +736,6 @@ Commands available:
                | -a | --alias              all commands at once, all alias, or all binaries.
                | -b | --bin
 
-    check                                - [DEV] Quick sanity check.
-
     edit [<cmd>]                         - Edit a registered command wrapper's or a patch with your preferred code editor[1].
          | [<cmd> <sub>]                   If you don't provide any arguments (`mon edit`) monkeypatsh opens the registered directory.
          | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
@@ -764,8 +762,10 @@ Commands available:
 
     refresh                              - Refresh commands.
 
+    help                                 - Show this help and exit. Can also be shown with just `mon`.
+
 Options available:
-    -h|--help                            - Show this help and exit. Can also be shown with just `mon`
+    -h|--help                            - Show this help and exit. Can also be shown with just `mon`.
 
 Configuring monkeypatsh:
     You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file.
@@ -793,9 +793,6 @@ function mon() {
     unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
         _unregister "$@"
         ;;
-    che | chec | check)
-        _check
-        ;;
     edi | edit)
         _edit "$@"
         ;;
@@ -814,8 +811,12 @@ function mon() {
     ref | refr | refre | refres | refresh)
         _refresh
         ;;
-    -h | --help)
+    hel | help | -h | --help)
         _help
+        ;;
+    # Not exposed in help
+    che | chec | check)
+        _check
         ;;
     *)
         echo "mon: unrecognized option '$mon_cmd'"

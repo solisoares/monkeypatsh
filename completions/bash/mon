@@ -7,7 +7,7 @@ _mon_completion() {
     local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
 
     if [[ "$length" -eq 2 ]]; then
-        COMPREPLY=($(compgen -W 'register patch unregister check edit list uninstall backup restore refresh -h --help' -- "$cur"))
+        COMPREPLY=($(compgen -W 'register patch unregister edit list uninstall backup restore refresh help -h --help' -- "$cur"))
         return
     fi
 
@@ -67,10 +67,6 @@ _mon_completion() {
             return
         fi
 
-    # mon check
-    elif [[ "$word1" = 'check' && "$length" -gt 2 ]]; then
-        COMPREPLY=()
-
     # mon edit <cur>
     elif [[ "$word1" = 'edit' && "$length" -ge 3 ]]; then
         local registered="$(monkeypat.sh list --flat)"
@@ -123,6 +119,13 @@ _mon_completion() {
         if [ "$length" -ge 4 ]; then
             COMPREPLY=()
         fi
+
+    # mon help
+    elif [[ "$length" -gt 2 ]]; then
+        if [[ "$word1" = '-h' || "$word1" = '--help' || "$word1" = 'help' ]]; then
+            COMPREPLY=()
+        fi
+
     fi
 
 }
