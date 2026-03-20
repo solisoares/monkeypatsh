@@ -45,11 +45,14 @@ function setup_monrc_file() {
     # to date on each monkeypatsh registration.
     echo "alias mon='source "$MON_RC_FILE"; $MON_BIN'" >>"$MON_RC_FILE"
 
-    # Export monkeypat.sh so we can reference it in completion functions
-    echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_DIR/src/:\$PATH\"; fi" >>"$MON_RC_FILE"
-
-    # For commands registered as binary, export PATH so they can be found
-    echo "if ! echo \"\$PATH\" | grep -q mon; then export PATH=\"$MON_REGISTERED_BIN:\$PATH\"; fi" >>"$MON_RC_FILE"
+    # Extend PATH with 'monkeypat.sh' (for completion functions) and the
+    # registered binaries.
+    cat <<-EOF >>"$MON_RC_FILE"
+	if ! echo "\$PATH" | grep -q mon; then
+	    export PATH="$MON_DIR/src/:\$PATH"
+	    export PATH="$MON_REGISTERED_BIN:\$PATH"
+	fi
+	EOF
 
     echo "export EDITOR" >>"$MON_RC_FILE"
     echo "" >>"$MON_RC_FILE"
