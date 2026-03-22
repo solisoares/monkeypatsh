@@ -55,7 +55,7 @@ function _is_bin() {
     [[ -f "$MON_REGISTERED_BIN/$cmd" ]] && return 0 || return 1
 }
 
-function _registered_dir {
+function _registered_dir() {
     local cmd="$1"
 
     if ! _is_registered "$cmd"; then
@@ -394,6 +394,11 @@ function _unregister() {
     local args=()
     local question
     if [[ $# -eq 1 ]] && [[ $1 = "--alias" || "$1" = "-a" || $1 = "--bin" || "$1" = "-b" || $1 = "--all" || "$1" = "-A" ]]; then
+        if [[ -z "$(__list_full)" ]]; then
+            _info "No registered commands"
+            return
+        fi
+
         if [[ $1 = "--alias" || "$1" = "-a" ]]; then
             read -d '\n' -a args <<<"$(__list_alias)"
             question="Unregister all aliases?"
@@ -415,13 +420,15 @@ function _unregister() {
         args=("$@")
     fi
 
+    local some_success=0
+
     local arg
     for arg in "${args[@]}"; do
         local cmd="$arg"
 
         if ! _is_registered "$cmd"; then
-            _error "patch" "$(_not_found_msg "$cmd")"
-            return 1
+            _error "unregister" "$(_not_found_msg "$cmd")"
+            continue
         fi
 
         if _is_alias "$cmd"; then
@@ -435,9 +442,12 @@ function _unregister() {
         rm -f "$MON_COMPLETIONS_BASH/$cmd"
         rm -f "$MON_COMPLETIONS_ZSH/$cmd"
         _info "Unregistered command '$cmd'"
+        some_success=1
     done
 
-    _info "Refresh commands with 'mon refresh'"
+    if [[ "$some_success" -eq 1 ]]; then
+        _info "Refresh commands with 'mon refresh'"
+    fi
 
 }
 
