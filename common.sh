@@ -33,12 +33,10 @@ GREEN='\033[0;32m'
 RESET_COLOR='\033[0m'
 
 function _log() {
-    message="[${GREEN}OK${RESET_COLOR}] $@"
-
     if [ "$1" = '--error' ]; then
         shift
-        message="[${RED}ERROR${RESET_COLOR}] $@"
+        echo -e "[${RED}ERROR${RESET_COLOR}] $@" 1>&2
+    else
+        echo -e "[${GREEN}OK${RESET_COLOR}] $@"
     fi
-
-    echo -e "$message"
 }

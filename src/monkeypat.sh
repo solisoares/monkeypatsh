@@ -3,29 +3,41 @@
 SOURCE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]}))"
 source $SOURCE_DIR/../common.sh
 
-alias_title="$(
-    cat <<EOF
+alias_title="\
 ╭───────╮
 │ Alias │
-├───────╯
-EOF
-)"
+├───────╯"
 
-bin_title="$(
-    cat <<EOF
+bin_title="\
 ╭───────╮
 │  Bin  │
-├───────╯
-EOF
-)"
+├───────╯"
+
+function _error() {
+    local source="$1"
+
+    shift
+    local message="$@"
+
+    if [[ -n "$source" ]]; then
+        echo "mon: $source: $message" >&2
+    else
+        echo "mon: $message" >&2
+    fi
+
+}
+
+function _error_hint() {
+    echo "  $@" >&2
+}
+
+function _info() {
+    echo "$@"
+}
 
 function _not_found_msg() {
     local cmd="$1"
-    local not_found='command'
-    if [[ "$cmd" == -* ]]; then
-        not_found='option'
-    fi
-    echo "There is no registered $not_found named '$cmd'"
+    echo "there is no registered command named '$cmd'"
 }
 
 function _is_registered() {
@@ -47,14 +59,13 @@ function _registered_dir {
     local cmd="$1"
 
     if ! _is_registered "$cmd"; then
-        _not_found_msg "$cmd"
         return 1
     fi
 
     if _is_alias "$cmd"; then
-        printf "$MON_REGISTERED_ALIAS"
+        echo "$MON_REGISTERED_ALIAS"
     else
-        printf "$MON_REGISTERED_BIN"
+        echo "$MON_REGISTERED_BIN"
     fi
 
     return 0
@@ -77,8 +88,8 @@ function _register() {
     # Wrap command with monkeypatsh
 
     if [ "$#" -eq 0 ]; then
-        echo "mon: missing argument for 'register'"
-        echo "'register' requires at least 1 argument, you provided $#"
+        _error "register" "missing argument for 'register'"
+        _error_hint "'register' requires at least 1 argument, you provided $#"
         return 1
     fi
 
@@ -102,7 +113,7 @@ function _register() {
     local cmd
     for cmd in "${cmds[@]}"; do
         if [ "$cmd" = "mon" ]; then
-            echo "error: monkeypatsh cannot be registered."
+            _error "register" "monkeypatsh cannot be registered."
             return 1
         fi
 
@@ -110,8 +121,8 @@ function _register() {
             local cmd_cleaned="${cmd//-/}"
             cmd_cleaned="${cmd_cleaned// /}"
 
-            echo "mon: cannot register a command like '$cmd'"
-            echo "try \`mon register $cmd_cleaned \`"
+            _error "register" "cannot register a command like '$cmd'"
+            _error_hint "Try 'mon register $cmd_cleaned'"
             return 1
         fi
 
@@ -121,7 +132,10 @@ function _register() {
         if _is_registered "$cmd"; then
             old_location="$(_registered_dir $cmd)"
             if [ "$location" = "$old_location" ]; then
-                _is_registered_msg "$cmd"
+                _error "register" "$(_is_registered_msg $cmd)"
+                if [ "${#cmds[@]}" -eq 1 ]; then
+                    return 1
+                fi
                 continue
             else
                 changed_location=1
@@ -136,9 +150,9 @@ function _register() {
                 change_type="bin"
             fi
 
-            _is_registered_msg $cmd
+            _info "$(_is_registered_msg $cmd)"
             if ! _has_confirmed "Change to $change_type?"; then
-                echo "Aborting change..."
+                _info "Aborting change..."
                 continue
             fi
 
@@ -148,7 +162,7 @@ function _register() {
                 _unalias "$cmd"
             fi
 
-            echo "'$cmd' updated to $change_type."
+            _info "'$cmd' updated to $change_type."
         fi
 
         if [[ "$location" = "$MON_REGISTERED_ALIAS" ]]; then
@@ -180,10 +194,10 @@ function _register() {
         cat "$completion_template_bash" | envsubst '${cmd}' >"$MON_COMPLETIONS_BASH/$cmd"
         cat "$completion_template_zsh" | envsubst '${cmd}' >"$MON_COMPLETIONS_ZSH/$cmd"
 
-        echo "Registered command '$cmd'"
+        _info "Registered command '$cmd'"
     done
 
-    echo "Refresh commands with \`mon refresh\`"
+    _info "Refresh commands with 'mon refresh'"
 
 }
 
@@ -195,13 +209,13 @@ function _open_file() {
     if [[ -f "$MON_CONFIG_FILE" ]]; then
         config_editor="$(cat $MON_CONFIG_FILE | sed -nE '/^\s*#/! s/\s*editor\s*=\s*(\w+)\s*.*/\1/p')"
         if [[ -n "$config_editor" ]] && ! command -v "$config_editor" >/dev/null; then
-            echo "error: config: '$config_editor' not found"
+            _error "config" "'$config_editor' not found"
             return 1
         fi
     fi
 
     if [[ -z "$config_editor" ]] && [[ -n "$EDITOR" ]] && ! command -v "$EDITOR" >/dev/null; then
-        echo "error: EDITOR: '$EDITOR' not found"
+        _error "config" "'$EDITOR' not found"
         return 1
     fi
 
@@ -264,13 +278,19 @@ function _has_patch() {
 function _has_patch_msg() {
     local cmd="$1"
     local patch="$2"
-    echo "error: '$cmd $patch' already exist"
+    echo "'$cmd $patch' already exist"
 }
 
 function _dont_has_patch_msg() {
     local cmd="$1"
     local patch="$2"
-    echo "error: '$cmd $patch' does not exist"
+
+    local not_found='subcommand'
+    if [[ "$patch" == -* ]]; then
+        not_found='option'
+    fi
+
+    echo "'$cmd' has no $not_found named '$patch'"
 }
 
 function _patch() {
@@ -279,23 +299,23 @@ function _patch() {
     local opt="$2"
     local code="$3"
 
-    if [ "$#" -lt 2 ]; then
-        echo "mon: missing argument for 'patch'"
-        echo "'patch' requires at least 2 arguments, you provided $#"
+    if [[ "$#" -eq 0 ]] || { [[ "$#" -eq 1 ]] && _is_registered "$cmd"; }; then
+        _error "patch" "missing argument for 'patch'"
+        _error_hint "'patch' requires at least 2 arguments, you provided $#"
         return 1
     fi
 
     if ! _is_registered "$cmd"; then
-        _not_found_msg "$cmd"
+        _error "patch" "$(_not_found_msg "$cmd")"
         return 1
     fi
 
     if _has_patch "$cmd" "$opt"; then
-        _has_patch_msg "$cmd" "$opt"
+        _error "patch" "$(_has_patch_msg "$cmd" "$opt")"
         return 1
     fi
 
-    local location="$(_registered_dir $cmd)"
+    local location="$(_registered_dir "$cmd")"
 
     export opt code
 
@@ -320,9 +340,10 @@ function _patch() {
     if [ -z "$code" ]; then
         local patch="_mon_$opt"
         _open_file "$location/$cmd" "$patch"
+        [[ "$?" -eq 1 ]] && return 1
     fi
 
-    echo "Patched: $cmd $opt"
+    _info "Patched: $cmd $opt"
 }
 
 function _has_confirmed() {
@@ -362,8 +383,8 @@ function _unhash() {
 
 function _unregister() {
     if [ "$#" -eq 0 ]; then
-        echo "mon: missing argument for 'unregister'"
-        echo "'unregister' requires at least 1 argument, you provided $#"
+        _error "unregister" "missing argument for 'unregister'"
+        _error_hint "'unregister' requires at least 1 argument, you provided $#"
         return 1
     fi
 
@@ -384,7 +405,7 @@ function _unregister() {
         fi
 
         if ! _has_confirmed "$question" 'y'; then
-            echo "Aborting unregister..."
+            _info "Aborting unregister..."
             return 1
         fi
     else
@@ -396,7 +417,7 @@ function _unregister() {
         local cmd="$arg"
 
         if ! _is_registered "$cmd"; then
-            _not_found_msg "$cmd"
+            _error "patch" "$(_not_found_msg "$cmd")"
             return 1
         fi
 
@@ -410,70 +431,70 @@ function _unregister() {
         rm "$location/$cmd"
         rm -f "$MON_COMPLETIONS_BASH/$cmd"
         rm -f "$MON_COMPLETIONS_ZSH/$cmd"
-        echo "Unregistered command '$cmd'"
+        _info "Unregistered command '$cmd'"
     done
 
-    echo "Refresh commands with \`mon refresh\`"
+    _info "Refresh commands with 'mon refresh'"
 
 }
 
 function _check() {
     # Quick sanity check.
-    echo "============= .rc file ($MON_RC_FILE) ============="
-    echo -e "$(cat $MON_RC_FILE)\n"
+    _info "============= .rc file ($MON_RC_FILE) ============="
+    _info -e "$(cat $MON_RC_FILE)\n"
 
-    echo "============= .config file ($MON_CONFIG_FILE) ============="
-    echo -e "$(cat $MON_CONFIG_FILE)\n"
+    _info "============= .config file ($MON_CONFIG_FILE) ============="
+    _info -e "$(cat $MON_CONFIG_FILE)\n"
 
-    echo "============= registered ($MON_REGISTERED) ============="
-    echo -e "$alias_title"
-    echo -e "$(ls -l $MON_REGISTERED_ALIAS)\n"
-    echo -e "$bin_title"
-    echo -e "$(ls -l $MON_REGISTERED_BIN)\n"
+    _info "============= registered ($MON_REGISTERED) ============="
+    _info -e "$alias_title"
+    _info -e "$(ls -l $MON_REGISTERED_ALIAS)\n"
+    _info -e "$bin_title"
+    _info -e "$(ls -l $MON_REGISTERED_BIN)\n"
 
-    echo "============= completions ($MON_COMPLETIONS_BASH) ============="
-    echo -e "$(ls -l $MON_COMPLETIONS_BASH)\n"
+    _info "============= completions ($MON_COMPLETIONS_BASH) ============="
+    _info -e "$(ls -l $MON_COMPLETIONS_BASH)\n"
 
-    echo "============= completions ($MON_COMPLETIONS_ZSH) ============="
-    echo -e "$(ls -l $MON_COMPLETIONS_ZSH)\n"
+    _info "============= completions ($MON_COMPLETIONS_ZSH) ============="
+    _info -e "$(ls -l $MON_COMPLETIONS_ZSH)\n"
 }
 
 function _edit() {
     # Edit registered dir
     if [[ "$#" -eq 0 ]]; then
         _open_file "$MON_REGISTERED"
-        return 0
+        return "$?"
     fi
 
     # Edit monkeypatsh itself
     if [[ "$#" -eq 1 && "$1" = 'mon' ]]; then
         # "$_editor" "$MON_DIR/monkeypat.sh"
         _open_file "$MON_DIR"
-        return 0
+        return "$?"
     fi
 
     # Edit .monrc and .monconfig
     if [[ "$1" = "-r" || "$1" = "--rc" ]]; then
         _open_file "$MON_RC_FILE"
-        return 0
+        return "$?"
     fi
     if [[ "$1" = "-c" || "$1" = "--config" ]]; then
         _open_file "$MON_CONFIG_FILE"
-        return 0
+        return "$?"
     fi
 
     local cmd="$1"
-    local location="$(_registered_dir $cmd)"
+    local location="$(_registered_dir "$cmd")"
 
     # Edit cmd
     if [ "$#" -eq 1 ]; then
         if ! _is_registered "$cmd"; then
-            _not_found_msg "$cmd"
+            _error "edit" "$(_not_found_msg "$cmd")"
             exit 1
         fi
 
         _open_file "$location/$cmd" '_mon_default'
-        return 0
+        return "$?"
 
     fi
 
@@ -483,9 +504,9 @@ function _edit() {
         local opt_function="_mon_$opt"
         if _has_patch "$cmd" "$opt"; then
             _open_file "$location/$cmd" "$opt_function"
-            return 0
+            return "$?"
         else
-            _dont_has_patch_msg "$cmd" "$opt"
+            _error "edit" "$(_dont_has_patch_msg "$cmd" "$opt")"
             return 1
         fi
     fi
@@ -568,6 +589,12 @@ function _list() {
         return
     fi
 
+    if [[ "$#" -gt 1 ]]; then
+        _error "list" "too many arguments for 'list'"
+        _error_hint "'list' requires 1 argument, you provided $#"
+        return 1
+    fi
+
     if [ "$1" = "-r" ] || [ "$1" = "--recursive" ]; then
         function __list_verbose() {
             local alias_or_bin="$1"
@@ -604,19 +631,20 @@ function _list() {
 
         local alias_part="$(__list_verbose alias)"
         local bin_part="$(__list_verbose bin)"
-        if [[ -n "$alias_part" ]]; then echo "$alias_part"; fi
-        if [[ -n "$alias_part" && -n "$bin_part" ]]; then echo ""; fi
-        if [[ -n "$bin_part" ]]; then echo "$bin_part"; fi
+        if [[ -n "$alias_part" ]]; then _info "$alias_part"; fi
+        if [[ -n "$alias_part" && -n "$bin_part" ]]; then _info ""; fi
+        if [[ -n "$bin_part" ]]; then _info "$bin_part"; fi
 
         return
     fi
 
     local cmd="$1"
     if _is_registered "$cmd"; then
-        local location="$(_registered_dir $cmd)"
+        local location="$(_registered_dir "$cmd")"
         (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*_mon_([\w\-]*)/\1/p')
     else
-        _not_found_msg "$cmd"
+        _error "list" "$(_not_found_msg "$cmd")"
+        return 1
     fi
 }
 
@@ -635,10 +663,10 @@ function _backup() {
     fi
 
     if [ -f "$backup_file" ]; then
-        echo "There is already a backup at '$backup_file'"
+        _info "There is already a backup at '$backup_file'"
 
         if ! _has_confirmed "Overwrite?"; then
-            echo "Aborting backup..."
+            _info "Aborting backup..."
             return 1
         fi
     fi
@@ -670,14 +698,14 @@ function _backup() {
     tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_REGISTERED)" >/dev/null 2>&1
     tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_COMPLETIONS)" >/dev/null 2>&1
 
-    echo "Backed up monkeypatsh."
-    echo "To restore run: \`mon restore $backup_file\`"
+    _info "Backed up monkeypatsh."
+    _info "To restore run: 'mon restore $backup_file'"
 }
 
 function _restore() {
     if [ $# -eq 0 ]; then
-        echo "mon: missing argument for 'restore'"
-        echo "'restore' requires a backup file: \`mon restore <file.bak.tar>\`"
+        _error "restore" "missing argument for 'restore'"
+        _error_hint "'restore' requires a backup file: 'mon restore <file.bak.tar>'"
         return 1
     fi
 
@@ -696,15 +724,15 @@ function _restore() {
     cp -r "$mon_registered_bak"/* "$MON_REGISTERED"
     cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
 
-    echo "Restored monkeypatsh configuration."
-    echo "Refresh commands with \`mon refresh\`"
+    _info "Restored monkeypatsh configuration."
+    _info "Refresh commands with 'mon refresh'"
 }
 
 function _refresh() {
-    # This is in the API just as a convenience, because
-    # every time monkeypatsh is called, it sources .monrc,
-    # and there it exports, alias and unalias the necessary stuff.
-    echo "Refreshed commands"
+    # This is in the API just as a convenience, because every time monkeypatsh
+    # is called, it sources .monrc, and there it exports, alias and unalias the
+    # necessary stuff.
+    _info "Refreshed commands"
 }
 
 function _help() {
@@ -770,7 +798,7 @@ Options available:
 Configuring monkeypatsh:
     You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file.
 
-    [1] Changing default code editor: `editor = <editor>`
+    [1] Changing default code editor: `editor=<editor>`
 
 EOF
 }
@@ -814,13 +842,14 @@ function mon() {
     hel | help | -h | --help)
         _help
         ;;
+
     # Not exposed in help
     che | chec | check)
         _check
         ;;
     *)
-        echo "mon: unrecognized option '$mon_cmd'"
-        echo "Try 'mon --help' for more information."
+        _error "" "unrecognized command '$mon_cmd'"
+        _error_hint "Try 'mon help' for more information."
         ;;
     esac
 }

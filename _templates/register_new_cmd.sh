@@ -26,9 +26,9 @@ function _not_found_msg() {
 function _not_implemented_msg() {
     local opt="$1"
     if [[ -z "$opt" ]]; then
-        echo "${cmd}: default execution not implemented"
+        echo "mon: ${cmd}: default execution not implemented" >&2
     else
-        echo "${cmd}: '$opt' not implemented"
+        echo "mon: ${cmd}: '$opt' not implemented" >&2
     fi
 }
 

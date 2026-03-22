@@ -22,12 +22,12 @@ function rm_mondir() {
         # Remove symlink to source
         rm "$MON_DIR"
 
-        msg="Removed symlink to monkeypatsh executable, wrappers and completions."
+        msg="Removed symlink to: $MON_DIR"
 
     # If not, just remove the copy
     else
         rm -r "$MON_DIR"
-        msg="Removed monkeypatsh executable, wrappers and completions."
+        msg="Removed monkeypatsh directory: $MON_DIR"
     fi
 
     _log "$msg"
@@ -36,14 +36,14 @@ function rm_mondir() {
 function rm_monrc_file() {
     if [ -f "$MON_RC_FILE" ]; then
         rm $MON_RC_FILE
-        _log "Removed $MON_RC_FILE"
+        _log "Removed file: $MON_RC_FILE"
     fi
 }
 
 function rm_monconfig_file() {
     if [ -f $MON_CONFIG_FILE ]; then
         rm $MON_CONFIG_FILE
-        _log "Removed $MON_CONFIG_FILE"
+        _log "Removed file: $MON_CONFIG_FILE"
     fi
 }
 
@@ -53,7 +53,7 @@ function update_shellrc_files() {
         sed -i '/monkeypatsh/d' $shell_rc_file
         sed -i '/monrc/d' $shell_rc_file
         sed -i '\|.mon/registered/bin|d' $shell_rc_file
-        _log "Removed setup configs from $shell_rc_file"
+        _log "Removed setup configs from: $shell_rc_file"
     done
 }
 

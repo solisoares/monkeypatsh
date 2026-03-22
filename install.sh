@@ -17,11 +17,11 @@ function copy_source_code() {
     if [ "$devmode" -eq 1 ]; then
         # Dev install: symlink source
         ln -s "$SOURCE_DIR/" "$MON_DIR"
-        msg="Symlinked source code to $MON_DIR"
+        msg="Symlinked source code to: $MON_DIR"
     else
         # Normal install: copy source
         rsync -a --exclude='.git' "$SOURCE_DIR/" "$MON_DIR"
-        msg="Copied source code to $MON_DIR"
+        msg="Copied source code to: $MON_DIR"
     fi
 
     # Add directories for registered commands
@@ -70,7 +70,7 @@ function setup_monrc_file() {
 
     echo "" >>"$MON_RC_FILE"
 
-    _log "Created "$MON_RC_FILE" file"
+    _log "Created file: $MON_RC_FILE"
 }
 
 function add_monconfig_file() {
@@ -80,7 +80,7 @@ function add_monconfig_file() {
 	# editor=vim
 	EOF
 
-    _log "Created "$MON_CONFIG_FILE" file"
+    _log "Created file: $MON_CONFIG_FILE"
 }
 
 function setup_shellrc_files() {
@@ -91,7 +91,7 @@ function setup_shellrc_files() {
         # and not in the shell rc file, always source it on start up
         echo "if [ -f $MON_RC_FILE ]; then source $MON_RC_FILE; fi" >>"$shell_rc_file"
 
-        _log "Configured "$shell_rc_file" file"
+        _log "Configured file: $shell_rc_file"
     done
 }
 
