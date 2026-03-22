@@ -38,7 +38,7 @@ _mon_completion() {
             fi
 
             if (( length >= 3 )) && [[ "$word2" == -a || "$word2" == --alias ]]; then
-                local -a bins=( ${(f)"$(monkeypat.sh list --bin)"} )
+                local -a bins=( ${(f)"$(monkeypat.sh __list_bin)"} )
                 _alternative \
                     "bins:registered binaries:compadd -a bins" \
                     "commands:system commands:_command_names"
@@ -46,7 +46,7 @@ _mon_completion() {
             fi
 
             if (( length >= 3 )) && [[ "$word2" == --bin ]]; then
-                local -a aliases=( ${(f)"$(monkeypat.sh list --alias)"} )
+                local -a aliases=( ${(f)"$(monkeypat.sh __list_alias)"} )
                 compadd -a aliases
                 return
             fi
@@ -59,7 +59,7 @@ _mon_completion() {
 
         patch)
             if (( length == 3 )); then
-                local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
                 compadd -a registered
             fi
             # length >= 4: no completions
@@ -81,7 +81,7 @@ _mon_completion() {
             fi
 
             if (( length == 3 )); then
-                local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
                 compadd -a registered
             fi
             ;;
@@ -91,14 +91,14 @@ _mon_completion() {
                 if [[ "$cur" == -* ]]; then
                     _values 'flags' '-c[Config]' '--config[Config]' '-r[RC file]' '--rc[RC file]'
                 else
-                    local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                    local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
                     compadd -a registered
                 fi
                 return
             fi
 
             if (( length == 4 )) && [[ "$prev" != -* ]]; then
-                local -a patches=( ${(f)"$(monkeypat.sh list "$prev")"} )
+                local -a patches=( ${(f)"$(monkeypat.sh __list_cmd "$prev")"} )
                 compadd -a patches
                 return
             fi
@@ -113,7 +113,7 @@ _mon_completion() {
                         '-f[Flat]' '--flat[Flat]' \
                         '-r[Recursive]' '--recursive[Recursive]'
                 else
-                    local -a registered=( ${(f)"$(monkeypat.sh list --flat)"} )
+                    local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
                     compadd -a registered
                 fi
             fi

@@ -272,7 +272,7 @@ function _open_file() {
 function _has_patch() {
     local cmd="$1"
     local sub="$2"
-    if [[ "$(_list "$cmd" | grep -- "^$sub$")" = "$sub" ]]; then
+    if [[ "$(__list_cmd "$cmd" | grep -- "^$sub$")" = "$sub" ]]; then
         return 0
     fi
     return 1
@@ -395,15 +395,15 @@ function _unregister() {
     local question
     if [[ $# -eq 1 ]] && [[ $1 = "--alias" || "$1" = "-a" || $1 = "--bin" || "$1" = "-b" || $1 = "--all" || "$1" = "-A" ]]; then
         if [[ $1 = "--alias" || "$1" = "-a" ]]; then
-            read -d '\n' -a args <<<"$(_list_alias)"
+            read -d '\n' -a args <<<"$(__list_alias)"
             question="Unregister all aliases?"
 
         elif [[ $1 = "--bin" || "$1" = "-b" ]]; then
-            read -d '\n' -a args <<<"$(_list_bin)"
+            read -d '\n' -a args <<<"$(__list_bin)"
             question="Unregister all binaries?"
 
         elif [[ $1 = "--all" || "$1" = "-A" ]]; then
-            read -d '\n' -a args <<<"$(_list_full)"
+            read -d '\n' -a args <<<"$(__list_full)"
             question="Unregister all commands?"
         fi
 
@@ -441,7 +441,7 @@ function _unregister() {
 
 }
 
-function _check() {
+function __check() {
     # Quick sanity check.
     _info "============= .rc file ($MON_RC_FILE) ============="
     _info -e "$(cat $MON_RC_FILE)\n"
@@ -515,14 +515,14 @@ function _edit() {
     fi
 }
 
-function _list_alias() {
+function __list_alias() {
     local aliases="$(find "$MON_REGISTERED_ALIAS" -type f | xargs -I {} basename {} | sort)"
     if [ -n "$aliases" ]; then
         echo "$aliases"
     fi
 }
 
-function _list_bin() {
+function __list_bin() {
     local bins="$(find "$MON_REGISTERED_BIN" -type f | xargs -I {} basename {} | sort)"
     if [ -n "$bins" ]; then
         echo "$bins"
@@ -541,10 +541,10 @@ function _pretty_bullet_patch_last() {
     printf "│  ╰─ %s\n" "$1"
 }
 
-function _list_full() {
+function __list_full() {
     if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]]; then
-        local aliases="$(_list_alias)"
-        local bins="$(_list_bin)"
+        local aliases="$(__list_alias)"
+        local bins="$(__list_bin)"
 
         if [[ -n "$aliases" ]]; then
             echo -e "$alias_title"
@@ -566,14 +566,20 @@ function _list_full() {
             done
         fi
     else
-        _list_alias
-        _list_bin
+        __list_alias
+        __list_bin
     fi
+}
+
+function __list_cmd() {
+    local cmd="$1"
+    local location="$(_registered_dir "$cmd")"
+    (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*_mon_([\w\-]*)/\1/p')
 }
 
 function _list() {
     if [ "$#" -eq 0 ]; then
-        local list="$(_list_full --verbose)"
+        local list="$(__list_full --verbose)"
         if [[ -n "$list" ]]; then
             echo "$list"
         else
@@ -583,7 +589,7 @@ function _list() {
     fi
 
     if [ "$#" -eq 1 ] && [[ "$1" = "-f" || "$1" = "--flat" ]]; then
-        local list="$(_list_full)"
+        local list="$(__list_full)"
         if [[ -n "$list" ]]; then
             echo "$list"
         else
@@ -593,7 +599,7 @@ function _list() {
     fi
 
     if [ "$#" -eq 1 ] && [[ "$1" = "-a" || "$1" = "--alias" ]]; then
-        local list="$(_list_alias)"
+        local list="$(__list_alias)"
         if [[ -n "$list" ]]; then
             echo "$list"
         else
@@ -603,7 +609,7 @@ function _list() {
     fi
 
     if [ "$#" -eq 1 ] && [[ "$1" = "-b" || "$1" = "--bin" ]]; then
-        local list="$(_list_bin)"
+        local list="$(__list_bin)"
         if [[ -n "$list" ]]; then
             echo "$list"
         else
@@ -619,15 +625,15 @@ function _list() {
     fi
 
     if [ "$1" = "-r" ] || [ "$1" = "--recursive" ]; then
-        function __list_verbose() {
+        function __list_full_verbose() {
             local alias_or_bin="$1"
             local cmds
             local title
             if [ "$alias_or_bin" = "alias" ]; then
-                cmds="$(_list_alias)"
+                cmds="$(__list_alias)"
                 title="$alias_title"
             else
-                cmds="$(_list_bin)"
+                cmds="$(__list_bin)"
                 title="$bin_title"
             fi
 
@@ -640,7 +646,7 @@ function _list() {
             while read -r cmd; do
                 _pretty_bullet_cmd "$cmd"
                 local patches
-                read -d '\n' -a patches <<<"$(_list "$cmd")"
+                read -d '\n' -a patches <<<"$(__list_cmd "$cmd")"
                 if [ "${#patches[@]}" -gt 0 ]; then
                     local patch
 
@@ -652,8 +658,8 @@ function _list() {
             done <<<"$cmds"
         }
 
-        local alias_part="$(__list_verbose alias)"
-        local bin_part="$(__list_verbose bin)"
+        local alias_part="$(__list_full_verbose alias)"
+        local bin_part="$(__list_full_verbose bin)"
         if [[ -z "$alias_part" && -z "$bin_part" ]]; then _info "No registered commands"; fi
         if [[ -n "$alias_part" ]]; then _info "$alias_part"; fi
         if [[ -n "$alias_part" && -n "$bin_part" ]]; then _info ""; fi
@@ -664,8 +670,7 @@ function _list() {
 
     local cmd="$1"
     if _is_registered "$cmd"; then
-        local location="$(_registered_dir "$cmd")"
-        (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*_mon_([\w\-]*)/\1/p')
+        __list_cmd "$cmd"
     else
         _error "list" "$(_not_found_msg "$cmd")"
         return 1
@@ -867,9 +872,21 @@ function mon() {
         _help
         ;;
 
-    # Not exposed in help
-    che | chec | check)
-        _check
+    # Not exposed in help: dev commands or used in completions
+    __check)
+        __check
+        ;;
+    __list_full)
+        __list_full "$@"
+        ;;
+    __list_alias)
+        __list_alias "$@"
+        ;;
+    __list_bin)
+        __list_bin "$@"
+        ;;
+    __list_cmd)
+        __list_cmd "$@"
         ;;
     *)
         _error "" "unrecognized command '$mon_cmd'"

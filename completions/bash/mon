@@ -19,14 +19,14 @@ _mon_completion() {
         fi
 
         if [[ "$length" -ge 3 ]] && [[ "$word2" = "-a" || "$word2" = "--alias" ]]; then # mon register -a,--alias <cur-cmd>
-            local bins="$(monkeypat.sh list --bin)"
+            local bins="$(monkeypat.sh __list_bin)"
             # complete with system binaries and aliases
             COMPREPLY=($(compgen -c -W "$bins" -- "$cur"))
             return
         fi
 
         if [[ "$length" -ge 3 && "$word2" = "--bin" ]]; then # mon register -b,--bin <cur-cmd>
-            local alias="$(monkeypat.sh list --alias)"
+            local alias="$(monkeypat.sh __list_alias)"
             COMPREPLY=($(compgen -W "$alias" -- "$cur"))
             return
         fi
@@ -41,7 +41,7 @@ _mon_completion() {
     # mon patch <cur>
     elif [[ "$word1" = 'patch' && "$length" -ge 3 ]]; then
         # mon patch <cur-cmd>
-        local registered="$(monkeypat.sh list --flat)"
+        local registered="$(monkeypat.sh __list_full)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
 
         if [ "$length" -ge 4 ]; then # mon patch <cmd> <sub-cmd> <cur-code>
@@ -51,7 +51,7 @@ _mon_completion() {
     # mon unregister <cur>
     elif [[ "$word1" = 'unregister' && "$length" -ge 3 ]]; then
         # mon unregister <cur-cmd>
-        local registered="$(monkeypat.sh list --flat)"
+        local registered="$(monkeypat.sh __list_full)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
 
         if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then # mon unregister <cur-flag>
@@ -69,7 +69,7 @@ _mon_completion() {
 
     # mon edit <cur>
     elif [[ "$word1" = 'edit' && "$length" -ge 3 ]]; then
-        local registered="$(monkeypat.sh list --flat)"
+        local registered="$(monkeypat.sh __list_full)"
 
         if [[ "$length" -eq 3 ]]; then
             if [[ "$cur" =~ ^- ]]; then # mon edit <cur-flag>
@@ -81,7 +81,7 @@ _mon_completion() {
         fi
 
         if [[ "$length" -eq 4 && ! "$prev" =~ ^- ]]; then # mon edit <cmd> <cur-sub-cmd>
-            local patches="$(monkeypat.sh list $prev)"
+            local patches="$(monkeypat.sh __list_cmd "$prev" 2>/dev/null)"
             COMPREPLY=($(compgen -W "$patches" -- "$cur"))
             return
         fi
@@ -90,7 +90,7 @@ _mon_completion() {
 
     # mon list <cur>
     elif [[ "$word1" = 'list' && "$length" -ge 3 ]]; then
-        local registered="$(monkeypat.sh list --flat)"
+        local registered="$(monkeypat.sh __list_full)"
 
         if [[ "$cur" =~ ^- ]]; then # mon list <cur-flag>
             COMPREPLY=($(compgen -W "-a --alias -b --bin -f --flat -r --recursive" -- "$cur"))
