@@ -254,13 +254,16 @@ function _open_file() {
         "$editor" +"$line" "$file"
         ;;
     code)
-        "$editor" --goto "$file":"$line"
+        "$editor" --goto "$file:$line"
         ;;
     kate)
         "$editor" --line "$line" "$file"
         ;;
     subl)
-        "$editor" "$file":"$line"
+        "$editor" "$file:$line"
+        ;;
+    zed)
+        "$editor" "$file:$line"
         ;;
     esac
 
