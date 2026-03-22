@@ -573,22 +573,42 @@ function _list_full() {
 
 function _list() {
     if [ "$#" -eq 0 ]; then
-        _list_full --verbose
+        local list="$(_list_full --verbose)"
+        if [[ -n "$list" ]]; then
+            echo "$list"
+        else
+            _info "No registered commands"
+        fi
         return
     fi
 
     if [ "$#" -eq 1 ] && [[ "$1" = "-f" || "$1" = "--flat" ]]; then
-        _list_full
+        local list="$(_list_full)"
+        if [[ -n "$list" ]]; then
+            echo "$list"
+        else
+            _info "No registered commands"
+        fi
         return
     fi
 
     if [ "$#" -eq 1 ] && [[ "$1" = "-a" || "$1" = "--alias" ]]; then
-        _list_alias
+        local list="$(_list_alias)"
+        if [[ -n "$list" ]]; then
+            echo "$list"
+        else
+            _info "No registered aliases"
+        fi
         return
     fi
 
     if [ "$#" -eq 1 ] && [[ "$1" = "-b" || "$1" = "--bin" ]]; then
-        _list_bin
+        local list="$(_list_bin)"
+        if [[ -n "$list" ]]; then
+            echo "$list"
+        else
+            _info "No registered binaries"
+        fi
         return
     fi
 
@@ -634,6 +654,7 @@ function _list() {
 
         local alias_part="$(__list_verbose alias)"
         local bin_part="$(__list_verbose bin)"
+        if [[ -z "$alias_part" && -z "$bin_part" ]]; then _info "No registered commands"; fi
         if [[ -n "$alias_part" ]]; then _info "$alias_part"; fi
         if [[ -n "$alias_part" && -n "$bin_part" ]]; then _info ""; fi
         if [[ -n "$bin_part" ]]; then _info "$bin_part"; fi
