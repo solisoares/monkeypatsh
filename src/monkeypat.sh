@@ -886,6 +886,9 @@ function mon() {
     __check)
         __check
         ;;
+    __is_registered)
+        _is_registered "$@"
+        ;;
     __list_full)
         __list_full "$@"
         ;;

@@ -59,10 +59,36 @@ _mon_completion() {
 
         patch)
             if (( length == 3 )); then
+                # mon patch <cur-cmd>
                 local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
                 compadd -a registered
+
+            elif (( length == 4 )); then
+                # mon patch <cmd> <cur>
+                local cmd="${words[3]}"
+                if (( length == 4 )) && monkeypat.sh __is_registered "$cmd"; then
+                    # mon patch <cmd> <cur-sub-cmd>
+                    local sub_cmd="${words[4]}"
+
+                    # Save the original zsh completion state
+                    local -a cmd_words=("${words[@]}")
+                    local cmd_cword=$CURRENT
+
+                    # Fake the command line as if completing "$cmd <sub_cmd>"
+                    words=("$cmd" "$sub_cmd")
+                    CURRENT=2
+
+                    # Dispatch to the registered completion function for $cmd
+                    _normal
+
+                    # Restore original completion state
+                    words=("${cmd_words[@]}")
+                    CURRENT=$cmd_cword
+                fi
+
             fi
-            # length >= 4: no completions
+
+            # length >= 5: no completions (mon patch <cmd> <sub-cmd> <cur-code>)
             ;;
 
         unregister)

@@ -44,7 +44,37 @@ _mon_completion() {
         local registered="$(monkeypat.sh __list_full)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
 
-        if [ "$length" -ge 4 ]; then # mon patch <cmd> <sub-cmd> <cur-code>
+        if [[ "$length" -eq 4 ]]; then # mon patch <cmd> <cur-sub-cmd>
+            local cmd="$word2"
+
+            local existent_and_registered=0
+            if monkeypat.sh __is_registered "$cmd"; then
+                local orig_completion_func="__mon_${cmd}_orig_completion_func"
+                if [[ -n "${!orig_completion_func}" ]]; then
+                    existent_and_registered=1
+                fi
+            fi
+
+            # Set COMPREPLY with existent completion (includes patches)
+            if [[ "$existent_and_registered" -eq 1 ]]; then
+                local sub_cmd="$cur"
+                local cmd_completion="$(complete -p "$cmd" 2>/dev/null)"
+                local cmd_completion_func="$(echo "$cmd_completion" | sed -r 's/.*\s+-F\s+([a-zA-Z_]+)\s+[a-zA-Z_]+/\1/')"
+                COMP_WORDS=("$cmd" "$sub_cmd")
+                COMP_CWORD=1
+                COMP_LINE="${COMP_WORDS[*]}"
+                COMP_POINT="${#COMP_LINE}"
+                $cmd_completion_func
+
+            # Set COMPREPLY with patches
+            else
+                local patches="$(monkeypat.sh __list_cmd "$prev" 2>/dev/null)"
+                COMPREPLY=($(compgen -W "$patches" -- "$cur"))
+            fi
+
+        fi
+
+        if [[ "$length" -ge 5 ]]; then # mon patch <cmd> <sub-cmd> <cur-code>
             COMPREPLY=()
         fi
 
