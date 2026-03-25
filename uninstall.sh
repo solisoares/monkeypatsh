@@ -50,9 +50,13 @@ function rm_monconfig_file() {
 function update_shellrc_files() {
     for shell_rc_file in "${SHELL_RC_FILES[@]}"; do
         # Remove setup configs from .rc file
-        sed -i '/monkeypatsh/d' $shell_rc_file
-        sed -i '/monrc/d' $shell_rc_file
-        sed -i '\|.mon/registered/bin|d' $shell_rc_file
+        local sed_flags="-i"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed_flags="-i ''"
+        fi
+        sed "$sed_flags" '/monkeypatsh/d' $shell_rc_file
+        sed "$sed_flags" '/monrc/d' $shell_rc_file
+        sed "$sed_flags" '\|.mon/registered/bin|d' $shell_rc_file
         _log "Removed setup configs from: $shell_rc_file"
     done
 }

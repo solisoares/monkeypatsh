@@ -160,4 +160,4 @@ _mon_completion() {
 
 }
 
-complete -o nosort -F _mon_completion mon
+complete -F _mon_completion mon
