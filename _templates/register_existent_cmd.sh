@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function _mon_default() {
-    \${cmd} "$@" # default execution
+    \{{cmd}} "$@" # default execution
 }
 
 function _clean_opt() {

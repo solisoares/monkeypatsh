@@ -1,18 +1,18 @@
-if typeset -f _mon_${cmd}_completion >/dev/null; then
+if typeset -f _mon_{{cmd}}_completion >/dev/null; then
     return
 fi
 
 # Save the original zsh completion function for the command
-_mon_${cmd}_orig_completion=$_comps[${cmd}]
+_mon_{{cmd}}_orig_completion=$_comps[{{cmd}}]
 
-_mon_${cmd}_completion() {
+_mon_{{cmd}}_completion() {
     # Run original command's completion first
-    service=${cmd}
-    words[1]=${cmd}
-    $_mon_${cmd}_orig_completion
+    service={{cmd}}
+    words[1]={{cmd}}
+    $_mon_{{cmd}}_orig_completion
 
     # Add monkeypatsh patches on top
-    local patches=(${(f)"$(monkeypat.sh list ${cmd})"})
+    local patches=(${(f)"$(monkeypat.sh list {{cmd}})"})
 
     _arguments -C \
         '1: :->patch' \
@@ -25,4 +25,4 @@ _mon_${cmd}_completion() {
     esac
 }
 
-compdef _mon_${cmd}_completion ${cmd}
+compdef _mon_{{cmd}}_completion {{cmd}}

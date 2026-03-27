@@ -1,9 +1,9 @@
-if typeset -f _mon_${cmd}_completion > /dev/null; then
+if typeset -f _mon_{{cmd}}_completion > /dev/null; then
     return
 fi
 
-_mon_${cmd}_completion() {
-    local patches=(${(f)"$(monkeypat.sh list ${cmd})"})
+_mon_{{cmd}}_completion() {
+    local patches=(${(f)"$(monkeypat.sh list {{cmd}})"})
 
     _arguments -C \
         '1: :->patch' \
@@ -16,4 +16,4 @@ _mon_${cmd}_completion() {
     esac
 }
 
-compdef _mon_${cmd}_completion ${cmd}
+compdef _mon_{{cmd}}_completion {{cmd}}

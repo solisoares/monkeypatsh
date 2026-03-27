@@ -188,11 +188,11 @@ function _register() {
 
         export cmd
         # Render registered template
-        cat "$register_template" | envsubst '${cmd}' >"$location/$cmd"
+        _render "$register_template" 'cmd' "$cmd" >"$location/$cmd"
         chmod +x "$location/$cmd"
         # Render completion template
-        cat "$completion_template_bash" | envsubst '${cmd}' >"$MON_COMPLETIONS_BASH/$cmd"
-        cat "$completion_template_zsh" | envsubst '${cmd}' >"$MON_COMPLETIONS_ZSH/$cmd"
+        _render "$completion_template_bash" 'cmd' "$cmd" >"$MON_COMPLETIONS_BASH/$cmd"
+        _render "$completion_template_zsh" 'cmd' "$cmd" >"$MON_COMPLETIONS_ZSH/$cmd"
 
         _info "Registered command '$cmd'"
     done
@@ -331,11 +331,11 @@ function _patch() {
             patch_function_template="$MON_TEMPLATES/patch_existent_cmd_function_empty.sh"
         fi
     fi
-    local patch_function="$(cat "$patch_function_template" | envsubst '${opt} ${code}')"
+    local patch_function="$(_render "$patch_function_template" 'opt' 'code' "$opt" "$code")"
     awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$location/$cmd"
 
     # Add patch case
-    local patch_case="$(cat "$MON_TEMPLATES/patch_cmd_case.sh" | envsubst '${opt}')"
+    local patch_case="$(_render "$MON_TEMPLATES/patch_cmd_case.sh" 'opt' "$opt")"
     cp "$location/$cmd" './tmpfile'
     awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$location/$cmd" &&
         rm './tmpfile'
@@ -772,6 +772,36 @@ function _refresh() {
     # is called, it sources .monrc, and there it exports, alias and unalias the
     # necessary stuff.
     _info "Refreshed commands"
+}
+
+function _render() {
+    # envsubst wannabe: renders <value_x> in {{<name_x>}}
+    #   _render <file> \
+    #       <name1> <name2> <name3> \
+    #       <value1> <value2> <value3>
+
+    local file="$1"
+    shift
+
+    local var_data=("$@")
+    local len="$#"
+    if [[ $((len % 2)) -ne 0 ]]; then
+        _error "render" 'template rendering has failed'
+        exit 1
+    fi
+
+    local half_len=$((len / 2))
+    local var_names=("${var_data[@]:0:$half_len}")
+    local var_values=("${var_data[@]:$half_len:$half_len}")
+
+    sed_expressions=""
+    for i in "${!var_names[@]}"; do
+        name="${var_names[$i]}"
+        value="${var_values[$i]}"
+        sed_expressions+="s/\{\{${name}\}\}/${value}/g;"
+    done
+
+    sed -E "$sed_expressions" "$file"
 }
 
 function _help() {

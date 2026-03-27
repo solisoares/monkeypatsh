@@ -1,12 +1,12 @@
-if [[ "$(type -t _mon_${cmd}_completion)" = 'function' ]]; then
+if [[ "$(type -t _mon_{{cmd}}_completion)" = 'function' ]]; then
     return
 fi
 
-function _mon_${cmd}_completion() {
+function _mon_{{cmd}}_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local length="${#COMP_WORDS[@]}"
 
-    local patches="$(monkeypat.sh list ${cmd})"
+    local patches="$(monkeypat.sh list {{cmd}})"
 
 	COMPREPLY=($(compgen -W "$patches" -- "$cur"))
 	if [ "$length" -gt 2 ]; then
@@ -15,4 +15,4 @@ function _mon_${cmd}_completion() {
 
 }
 
-complete -F _mon_${cmd}_completion ${cmd}
+complete -F _mon_{{cmd}}_completion {{cmd}}

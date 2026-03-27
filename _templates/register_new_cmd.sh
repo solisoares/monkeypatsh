@@ -20,15 +20,15 @@ function _not_found_msg() {
     local opt="$1"
     local kind='command'
     if [[ "$opt" == -* ]]; then kind='option'; fi
-    echo "${cmd}: '$_opt' is not a foo $kind"
+    echo "{{cmd}}: '$_opt' is not a foo $kind"
 }
 
 function _not_implemented_msg() {
     local opt="$1"
     if [[ -z "$opt" ]]; then
-        echo "mon: ${cmd}: default execution not implemented" >&2
+        echo "mon: {{cmd}}: default execution not implemented" >&2
     else
-        echo "mon: ${cmd}: '$opt' not implemented" >&2
+        echo "mon: {{cmd}}: '$opt' not implemented" >&2
     fi
 }
 

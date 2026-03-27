@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-function _mon_${opt}() {
+function _mon_{{opt}}() {
     :
 }
