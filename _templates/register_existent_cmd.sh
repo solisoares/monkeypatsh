@@ -16,8 +16,8 @@ function _clean_opt() {
 }
 
 function _main() {
-    _opt="$(_clean_opt $1)"
-    case "$_opt" in
+    local opt="$(_clean_opt $1)"
+    case "$opt" in
     *)
         _mon_default "$@"
         ;;

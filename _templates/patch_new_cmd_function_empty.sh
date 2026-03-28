@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 function _mon_{{opt}}() {
-    _not_implemented_msg "{{opt}}"
+    echo "{{cmd}}: '{{opt}}' not implemented" >&2
     return 1
 }

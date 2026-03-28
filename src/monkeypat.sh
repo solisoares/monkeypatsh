@@ -320,8 +320,6 @@ function _patch() {
 
     local location="$(_registered_dir "$cmd")"
 
-    export opt code
-
     # Add patch function
     cp "$location/$cmd" './tmpfile'
     local patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
@@ -331,13 +329,13 @@ function _patch() {
             patch_function_template="$MON_TEMPLATES/patch_existent_cmd_function_empty.sh"
         fi
     fi
-    local patch_function="$(_render "$patch_function_template" 'opt' 'code' "$opt" "$code")"
+    local patch_function="$(_render "$patch_function_template" 'cmd' 'opt' 'code' "$cmd" "$opt" "$code" | sed 's/&/\\\\&/g')"
     awk -v r="$patch_function" '{gsub(/#!\/usr\/bin\/env bash/, r)}1' './tmpfile' >"$location/$cmd"
 
     # Add patch case
     local patch_case="$(_render "$MON_TEMPLATES/patch_cmd_case.sh" 'opt' "$opt")"
     cp "$location/$cmd" './tmpfile'
-    awk -v r="$patch_case" '{gsub(/case "\$_opt" in/, r)}1' './tmpfile' >"$location/$cmd" &&
+    awk -v r="$patch_case" '{gsub(/case "\$opt" in/, r)}1' './tmpfile' >"$location/$cmd" &&
         rm './tmpfile'
 
     if [ -z "$code" ]; then
@@ -481,7 +479,6 @@ function _edit() {
 
     # Edit monkeypatsh itself
     if [[ "$#" -eq 1 && "$1" = 'mon' ]]; then
-        # "$_editor" "$MON_DIR/monkeypat.sh"
         _open_file "$MON_DIR"
         return "$?"
     fi
