@@ -31,7 +31,7 @@ _mon_completion() {
     fi
 
     case "$word1" in
-        register)
+        reg|regi|regis|regist|registe|register)
             if (( length == 3 )) && [[ "$cur" == -* ]]; then
                 _values 'flags' '-a[Alias]' '-b[Binary]' '--alias[Alias]' '--bin[Binary]'
                 return
@@ -57,7 +57,7 @@ _mon_completion() {
             fi
             ;;
 
-        patch)
+        pat|patc|patch)
             if (( length == 3 )); then
                 # mon patch <cur-cmd>
                 local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
@@ -91,7 +91,7 @@ _mon_completion() {
             # length >= 5: no completions (mon patch <cmd> <sub-cmd> <cur-code>)
             ;;
 
-        unregister)
+        unr|unre|unreg|unregi|unregis|unregist|unregiste|unregister)
             if (( length == 3 )) && [[ "$cur" == -* ]]; then
                 _values 'flags' \
                     '-A[All]' '-a[Alias]' '-b[Binary]' \
@@ -112,7 +112,7 @@ _mon_completion() {
             fi
             ;;
 
-        edit)
+        edi|edit)
             if (( length == 3 )); then
                 if [[ "$cur" == -* ]]; then
                     _values 'flags' '-c[Config]' '--config[Config]' '-r[RC file]' '--rc[RC file]'
@@ -130,7 +130,7 @@ _mon_completion() {
             fi
             ;;
 
-        list)
+        lis|list)
             if (( length == 3 )); then
                 if [[ "$cur" == -* ]]; then
                     _values 'flags' \
@@ -146,7 +146,7 @@ _mon_completion() {
             # length >= 4: no completions
             ;;
 
-        backup)
+        bac|back|backu|backup)
             if (( length == 3 )); then
                 _values 'flags' '-f[File]' '--file[File]'
             elif (( length == 4 )); then
@@ -154,7 +154,7 @@ _mon_completion() {
             fi
             ;;
 
-        restore)
+        res|rest|resto|restor|restore)
             if (( length == 3 )); then
                 _files
             fi
