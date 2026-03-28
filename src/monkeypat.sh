@@ -862,7 +862,7 @@ Options available:
     -h|--help                            - Show this help and exit. Can also be shown with just `mon`.
 
 Configuring monkeypatsh:
-    You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file.
+    You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file (`mon edit -c | --config`).
 
     [1] Changing default code editor: `editor=<editor>`
 
