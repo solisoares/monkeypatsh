@@ -35,7 +35,7 @@ function _info() {
     echo "$@"
 }
 
-function _not_found_msg() {
+function _not_registered_msg() {
     local cmd="$1"
     echo "there is no registered command named '$cmd'"
 }
@@ -309,7 +309,7 @@ function _patch() {
     fi
 
     if ! _is_registered "$cmd"; then
-        _error "patch" "$(_not_found_msg "$cmd")"
+        _error "patch" "$(_not_registered_msg "$cmd")"
         return 1
     fi
 
@@ -425,7 +425,7 @@ function _unregister() {
         local cmd="$arg"
 
         if ! _is_registered "$cmd"; then
-            _error "unregister" "$(_not_found_msg "$cmd")"
+            _error "unregister" "$(_not_registered_msg "$cmd")"
             continue
         fi
 
@@ -499,7 +499,7 @@ function _edit() {
     # Edit cmd
     if [ "$#" -eq 1 ]; then
         if ! _is_registered "$cmd"; then
-            _error "edit" "$(_not_found_msg "$cmd")"
+            _error "edit" "$(_not_registered_msg "$cmd")"
             exit 1
         fi
 
@@ -549,7 +549,7 @@ function _pretty_bullet_patch_last() {
 }
 
 function __list_full() {
-    if [ "$#" -eq 1 ] && [[ "$1" = "-v" || "$1" = "--verbose" ]]; then
+    if [ "$#" -eq 1 ] && [[ "$1" = "-p" || "$1" = "--pretty" ]]; then
         local aliases="$(__list_alias)"
         local bins="$(__list_bin)"
 
@@ -585,8 +585,15 @@ function __list_cmd() {
 }
 
 function _list() {
+    if [[ "$#" -gt 1 ]]; then
+        _error "list" "too many arguments for 'list'"
+        _error_hint "'list' requires 1 argument, you provided $#"
+        return 1
+    fi
+
+    # All pretty
     if [ "$#" -eq 0 ]; then
-        local list="$(__list_full --verbose)"
+        local list="$(__list_full --pretty)"
         if [[ -n "$list" ]]; then
             echo "$list"
         else
@@ -595,6 +602,7 @@ function _list() {
         return
     fi
 
+    # All flat
     if [ "$#" -eq 1 ] && [[ "$1" = "-f" || "$1" = "--flat" ]]; then
         local list="$(__list_full)"
         if [[ -n "$list" ]]; then
@@ -605,6 +613,7 @@ function _list() {
         return
     fi
 
+    # Aliases
     if [ "$#" -eq 1 ] && [[ "$1" = "-a" || "$1" = "--alias" ]]; then
         local list="$(__list_alias)"
         if [[ -n "$list" ]]; then
@@ -615,6 +624,7 @@ function _list() {
         return
     fi
 
+    # Binaries
     if [ "$#" -eq 1 ] && [[ "$1" = "-b" || "$1" = "--bin" ]]; then
         local list="$(__list_bin)"
         if [[ -n "$list" ]]; then
@@ -625,12 +635,7 @@ function _list() {
         return
     fi
 
-    if [[ "$#" -gt 1 ]]; then
-        _error "list" "too many arguments for 'list'"
-        _error_hint "'list' requires 1 argument, you provided $#"
-        return 1
-    fi
-
+    # Recursive pretty
     if [ "$1" = "-r" ] || [ "$1" = "--recursive" ]; then
         function __list_full_verbose() {
             local alias_or_bin="$1"
@@ -675,11 +680,15 @@ function _list() {
         return
     fi
 
+    # Cmd
     local cmd="$1"
     if _is_registered "$cmd"; then
-        __list_cmd "$cmd"
+        local patches="$(__list_cmd "$cmd")"
+        if [[ -z "$patches" ]]; then
+            _info "No patches"
+        fi
     else
-        _error "list" "$(_not_found_msg "$cmd")"
+        _error "list" "$(_not_registered_msg "$cmd")"
         return 1
     fi
 }
