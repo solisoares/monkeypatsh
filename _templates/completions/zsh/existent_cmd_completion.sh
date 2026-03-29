@@ -12,7 +12,7 @@ _mon_{{cmd}}_completion() {
     $_mon_{{cmd}}_orig_completion
 
     # Add monkeypatsh patches on top
-    local patches=(${(f)"$(monkeypat.sh list {{cmd}})"})
+    local patches=(${(f)"$(monkeypat.sh __list_cmd {{cmd}})"})
 
     _arguments -C \
         '1: :->patch' \

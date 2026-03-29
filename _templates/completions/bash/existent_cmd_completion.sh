@@ -18,7 +18,7 @@ function _mon_{{cmd}}_completion() {
 
     # Update COMPREPLY with the patches
     if [ "$length" -eq 2 ]; then
-        local patches="$(monkeypat.sh list {{cmd}})"
+        local patches="$(monkeypat.sh __list_cmd {{cmd}})"
         if [[ "$cur" =~ ^- ]]; then
             patches="$(echo "$patches" | sed '/^[^-]/d')" # show flags
         else

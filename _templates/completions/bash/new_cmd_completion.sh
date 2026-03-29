@@ -6,7 +6,7 @@ function _mon_{{cmd}}_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"
     local length="${#COMP_WORDS[@]}"
 
-    local patches="$(monkeypat.sh list {{cmd}})"
+    local patches="$(monkeypat.sh __list_cmd {{cmd}})"
 
 	COMPREPLY=($(compgen -W "$patches" -- "$cur"))
 	if [ "$length" -gt 2 ]; then

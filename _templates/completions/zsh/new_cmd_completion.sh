@@ -3,7 +3,7 @@ if typeset -f _mon_{{cmd}}_completion > /dev/null; then
 fi
 
 _mon_{{cmd}}_completion() {
-    local patches=(${(f)"$(monkeypat.sh list {{cmd}})"})
+    local patches=(${(f)"$(monkeypat.sh __list_cmd {{cmd}})"})
 
     _arguments -C \
         '1: :->patch' \
