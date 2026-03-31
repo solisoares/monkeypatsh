@@ -350,18 +350,18 @@ function _patch() {
 
 function _has_confirmed() {
     local question="$1"
-    local default="${2:-y}"
+    local default="$(echo "${2:-y}" | tr '[:upper:]' '[:lower:]')"
 
     local options='(y/N)'
-    if [[ "${default,,}" = 'y' ]]; then
+    if [[ "$default" = 'y' ]]; then
         options='(Y/n)'
     fi
 
     local confirm
     read -p "$question $options: " "${-+confirm}"
-    confirm="${confirm:-$default}"
+    local confirm="$(echo "${confirm:-$default}" | tr '[:upper:]' '[:lower:]')"
 
-    if [[ "${confirm,,}" =~ .*[n].* ]]; then
+    if [[ "$confirm" =~ .*[n].* ]]; then
         # no: 1
         return 1
     else
