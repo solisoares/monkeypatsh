@@ -59,7 +59,7 @@ _mon_completion() {
             if [[ "$existent_and_registered" -eq 1 ]]; then
                 local sub_cmd="$cur"
                 local cmd_completion="$(complete -p "$cmd" 2>/dev/null)"
-                local cmd_completion_func="$(echo "$cmd_completion" | sed -r 's/.*\s+-F\s+([a-zA-Z_]+)\s+[a-zA-Z_]+/\1/')"
+                local cmd_completion_func="$(echo "$cmd_completion" | sed -E 's/.*\s+-F\s+([a-zA-Z_]+)\s+[a-zA-Z_]+/\1/')"
                 COMP_WORDS=("$cmd" "$sub_cmd")
                 COMP_CWORD=1
                 COMP_LINE="${COMP_WORDS[*]}"
