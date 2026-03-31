@@ -4,8 +4,8 @@ fi
 
 # Save the original bash completion function and options for the command
 __mon_{{cmd}}_orig_completion="$(complete -p {{cmd}} 2>/dev/null)"
-__mon_{{cmd}}_orig_completion_no_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/complete\s+(.*)\s+-F.*/\1/')"
-__mon_{{cmd}}_orig_completion_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/.*\s+-F\s+([a-zA-Z_]+)\s+[a-zA-Z_]+/\1/')"
+__mon_{{cmd}}_orig_completion_no_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/complete[[:space:]]+(.*)[[:space:]]+-F.*/\1/')"
+__mon_{{cmd}}_orig_completion_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/.*[[:space:]]+-F[[:space:]]+([a-zA-Z_]+)[[:space:]]+[a-zA-Z_]+/\1/')"
 
 function _mon_{{cmd}}_completion() {
     local cur="${COMP_WORDS[$COMP_CWORD]}"

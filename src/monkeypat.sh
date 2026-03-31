@@ -207,7 +207,11 @@ function _open_file() {
 
     local config_editor
     if [[ -f "$MON_CONFIG_FILE" ]]; then
-        config_editor="$(cat $MON_CONFIG_FILE | sed -nE '/^\s*#/! s/\s*editor\s*=\s*(\w+)\s*.*/\1/p')"
+        config_editor="$(
+            cat $MON_CONFIG_FILE |
+                grep -v '[[:space:]]*#' | grep -E 'editor[[:space:]]*=' |
+                sed -E 's/.*editor[[:space:]]*=[[:space:]]*([a-zA-Z0-9_]+).*/\1/'
+        )"
         if [[ -n "$config_editor" ]] && ! command -v "$config_editor" >/dev/null; then
             _error "config" "'$config_editor' not found"
             return 1
@@ -373,7 +377,7 @@ function _has_confirmed() {
 function _unalias() {
     # Will be unaliased on next refresh
     local cmd="$1"
-    sed -i -E "/alias\s+$cmd/d" "$MON_RC_FILE"
+    sed -i -E "/alias[[:space:]]+$cmd/d" "$MON_RC_FILE"
     echo "$cmd" >>"$MON_TO_UNALIAS"
 }
 
@@ -666,7 +670,7 @@ function _list() {
                     for patch in "${patches[@]:0:${#patches[@]}-1}"; do
                         _pretty_bullet_patch "$patch"
                     done
-                    _pretty_bullet_patch_last "${patches[${#patches[@]}-1]}"
+                    _pretty_bullet_patch_last "${patches[${#patches[@]} - 1]}"
                 fi
             done <<<"$cmds"
         }
