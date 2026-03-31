@@ -666,7 +666,7 @@ function _list() {
                     for patch in "${patches[@]:0:${#patches[@]}-1}"; do
                         _pretty_bullet_patch "$patch"
                     done
-                    _pretty_bullet_patch_last "${patches[-1]}"
+                    _pretty_bullet_patch_last "${patches[${#patches[@]}-1]}"
                 fi
             done <<<"$cmds"
         }
