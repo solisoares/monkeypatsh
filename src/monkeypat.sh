@@ -590,6 +590,9 @@ function __list_full() {
 function __list_cmd() {
     local cmd="$1"
     local location="$(_registered_dir "$cmd")"
+    if [[ -z "$location" ]]; then
+        exit 1
+    fi
     (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*_mon_([\w\-]*)/\1/p')
 }
 
