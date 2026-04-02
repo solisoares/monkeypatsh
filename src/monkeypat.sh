@@ -13,28 +13,6 @@ bin_title="\
 │  Bin  │
 ├───────╯"
 
-function _error() {
-    local source="$1"
-
-    shift
-    local message="$@"
-
-    if [[ -n "$source" ]]; then
-        echo "mon: $source: $message" >&2
-    else
-        echo "mon: $message" >&2
-    fi
-
-}
-
-function _error_hint() {
-    echo "  $@" >&2
-}
-
-function _info() {
-    echo "$@"
-}
-
 function _not_registered_msg() {
     local cmd="$1"
     echo "there is no registered command named '$cmd'"
@@ -196,9 +174,6 @@ function _register() {
 
         _info "Registered command '$cmd'"
     done
-
-    _info "Refresh commands with 'mon refresh'"
-
 }
 
 function _open_file() {
@@ -375,7 +350,7 @@ function _has_confirmed() {
 }
 
 function _unalias() {
-    # Will be unaliased on next refresh
+    # Will be unaliased on next mon call
     local cmd="$1"
     local sed_flags="-i"
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -386,7 +361,7 @@ function _unalias() {
 }
 
 function _unhash() {
-    # Will be unhashed on next refresh
+    # Will be unhashed on next mon call
     local cmd="$1"
     echo "$cmd" >>"$MON_TO_UNHASH"
 }
@@ -427,8 +402,6 @@ function _unregister() {
         args=("$@")
     fi
 
-    local some_success=0
-
     local arg
     for arg in "${args[@]}"; do
         local cmd="$arg"
@@ -449,13 +422,7 @@ function _unregister() {
         rm -f "$MON_COMPLETIONS_BASH/$cmd"
         rm -f "$MON_COMPLETIONS_ZSH/$cmd"
         _info "Unregistered command '$cmd'"
-        some_success=1
     done
-
-    if [[ "$some_success" -eq 1 ]]; then
-        _info "Refresh commands with 'mon refresh'"
-    fi
-
 }
 
 function __check() {
@@ -782,44 +749,7 @@ function _restore() {
     cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
 
     _info "Restored monkeypatsh configuration."
-    _info "Refresh commands with 'mon refresh'"
-}
-
-function _refresh() {
-    # This is in the API just as a convenience, because every time monkeypatsh
-    # is called, it sources .monrc, and there it exports, alias and unalias the
-    # necessary stuff.
-    _info "Refreshed commands"
-}
-
-function _render() {
-    # envsubst wannabe: renders <value_x> in {{<name_x>}}
-    #   _render <file> \
-    #       <name1> <name2> <name3> \
-    #       <value1> <value2> <value3>
-
-    local file="$1"
-    shift
-
-    local var_data=("$@")
-    local len="$#"
-    if [[ $((len % 2)) -ne 0 ]]; then
-        _error "render" 'template rendering has failed'
-        exit 1
-    fi
-
-    local half_len=$((len / 2))
-    local var_names=("${var_data[@]:0:$half_len}")
-    local var_values=("${var_data[@]:$half_len:$half_len}")
-
-    sed_expressions=""
-    for i in "${!var_names[@]}"; do
-        name="${var_names[$i]}"
-        value="${var_values[$i]}"
-        sed_expressions+="s/\{\{${name}\}\}/${value}/g;"
-    done
-
-    sed -E "$sed_expressions" "$file"
+    _info "List registered commands with 'mon list'"
 }
 
 function _help() {
@@ -875,8 +805,6 @@ Commands available:
 
     restore <file>                       - Restore monkeypatsh from file.
 
-    refresh                              - Refresh commands.
-
     help                                 - Show this help and exit. Can also be shown with just `mon`.
 
 Options available:
@@ -922,9 +850,6 @@ function mon() {
         ;;
     res | rest | resto | restor | restore)
         _restore "$@"
-        ;;
-    ref | refr | refre | refres | refresh)
-        _refresh
         ;;
     hel | help | -h | --help)
         _help

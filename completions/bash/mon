@@ -7,7 +7,7 @@ _mon_completion() {
     local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
 
     if [[ "$length" -eq 2 ]]; then
-        COMPREPLY=($(compgen -W 'register patch unregister edit list uninstall backup restore refresh help -h --help' -- "$cur"))
+        COMPREPLY=($(compgen -W 'register patch unregister edit list uninstall backup restore help -h --help' -- "$cur"))
         return
     fi
 

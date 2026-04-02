@@ -35,40 +35,10 @@ function copy_source_code() {
 }
 
 function setup_monrc_file() {
-    # Create monkeypatsh rc file
-    touch "$MON_RC_FILE"
-
-    echo "# The following is here to avoid clutter in the main rc file" >>"$MON_RC_FILE"
-
-    # The `mon` command is itself an alias.
-    # Each call to `mon` sources the monkeypatsh rc file to make aliases up
-    # to date on each monkeypatsh registration.
-    echo "alias mon='source "$MON_RC_FILE"; $MON_BIN'" >>"$MON_RC_FILE"
-
-    # Extend PATH with 'monkeypat.sh' (for completion functions) and the
-    # registered binaries.
-    cat <<-EOF >>"$MON_RC_FILE"
-	if ! echo "\$PATH" | grep -q mon; then
-	    export PATH="$MON_DIR/src/:\$PATH"
-	    export PATH="$MON_REGISTERED_BIN:\$PATH"
-	fi
-	EOF
-
-    echo "export EDITOR" >>"$MON_RC_FILE"
-    echo "" >>"$MON_RC_FILE"
-
-    echo "# The following is here to be refreshed on every registration (it actually refreshes on on every \`mon\` call)" >>"$MON_RC_FILE"
-
-    # Source completions
-    echo "if [[ -d $MON_COMPLETIONS_BASH && -n \$BASH ]]; then for file in $MON_COMPLETIONS_BASH/*; do source \"\$file\"; done; fi" >>"$MON_RC_FILE"
-    echo "if [[ -d $MON_COMPLETIONS_ZSH && -n \$ZSH_NAME ]]; then for file in $MON_COMPLETIONS_ZSH/*; do source \"\$file\"; done; fi" >>"$MON_RC_FILE"
-
-    # Unalias pending unregistered alias
-    echo "if [[ -f $MON_TO_UNALIAS ]]; then unalias \$(cat $MON_TO_UNALIAS) > /dev/null 2>&1 && rm $MON_TO_UNALIAS; fi" >>"$MON_RC_FILE"
-    # Unhash pending unregistered binaries
-    echo "if [[ -f $MON_TO_UNHASH ]]; then hash -d \$(cat $MON_TO_UNHASH) > /dev/null 2>&1 && rm $MON_TO_UNHASH; fi" >>"$MON_RC_FILE"
-
-    echo "" >>"$MON_RC_FILE"
+    _render "$MON_TEMPLATES/setup_monrc.sh" \
+        'MON_DIR' 'MON_REGISTERED_BIN' 'MON_COMPLETIONS_BASH' 'MON_COMPLETIONS_ZSH' 'MON_BIN' 'MON_RC_FILE' 'MON_TO_UNALIAS' 'MON_TO_UNALIAS' 'MON_TO_UNHASH' \
+        "$MON_DIR" "$MON_REGISTERED_BIN" "$MON_COMPLETIONS_BASH" "$MON_COMPLETIONS_ZSH" "$MON_BIN" "$MON_RC_FILE" "$MON_TO_UNALIAS" "$MON_TO_UNALIAS" "$MON_TO_UNHASH" \
+        >"$MON_RC_FILE"
 
     _log "Created file: $MON_RC_FILE"
 }

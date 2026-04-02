@@ -1,14 +1,18 @@
 MON_DIR=~/.mon
 
 MON_TEMPLATES=$MON_DIR/_templates
+
 MON_TEMPLATES_COMPLETIONS_BASH=$MON_TEMPLATES/completions/bash
 MON_TEMPLATES_COMPLETIONS_ZSH=$MON_TEMPLATES/completions/zsh
+
 MON_REGISTERED=$MON_DIR/registered
 MON_REGISTERED_ALIAS=$MON_REGISTERED/alias
 MON_REGISTERED_BIN=$MON_REGISTERED/bin
+
 MON_COMPLETIONS=$MON_DIR/completions
 MON_COMPLETIONS_BASH=$MON_DIR/completions/bash
 MON_COMPLETIONS_ZSH=$MON_DIR/completions/zsh
+
 MON_TO_UNALIAS=$MON_DIR/.to_unalias
 MON_TO_UNHASH=$MON_DIR/.to_unhash
 
@@ -31,6 +35,62 @@ MON_CONFIG_FILE=~/.monconfig
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 RESET_COLOR='\033[0m'
+
+function _error() {
+    local source="$1"
+
+    shift
+    local message="$@"
+
+    if [[ -n "$source" ]]; then
+        echo "mon: $source: $message" >&2
+    else
+        echo "mon: $message" >&2
+    fi
+
+}
+
+function _error_hint() {
+    echo "  $@" >&2
+}
+
+function _info() {
+    echo "$@"
+}
+
+function _render() {
+    # envsubst wannabe: renders <value_x> in {{<name_x>}}
+    #   _render <file> \
+    #       <name1> <name2> <name3> \
+    #       <value1> <value2> <value3>
+
+    local file="$1"
+    shift
+
+    local var_data=("$@")
+    local len="$#"
+    if [[ $((len % 2)) -ne 0 ]]; then
+        _error "render" 'template rendering has failed'
+        exit 1
+    fi
+
+    local half_len=$((len / 2))
+    local var_names=("${var_data[@]:0:$half_len}")
+    local var_values=("${var_data[@]:$half_len:$half_len}")
+
+    sed_expressions=""
+    for i in "${!var_names[@]}"; do
+        name="${var_names[$i]}"
+        value="${var_values[$i]}"
+        if echo "$value" | grep -n "|"; then
+            _error 'render' 'rendered values conflict with sed delimiter'
+            exit 1
+        fi
+        sed_expressions+="s|\{\{${name}\}\}|${value}|g;"
+    done
+
+    sed -E "$sed_expressions" "$file"
+}
 
 function _log() {
     if [ "$1" = '--error' ]; then

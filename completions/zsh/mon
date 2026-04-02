@@ -11,7 +11,6 @@ _mon_completion() {
         'uninstall:Uninstall'
         'backup:Backup configuration'
         'restore:Restore configuration'
-        'refresh:Refresh commands'
         'help:Show help'
         # '-h:Show help'
         # '--help:Show help'
