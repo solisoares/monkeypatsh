@@ -665,6 +665,8 @@ function _list() {
         local patches="$(__list_cmd "$cmd")"
         if [[ -z "$patches" ]]; then
             _info "No patches"
+        else
+            __list_cmd "$cmd"
         fi
     else
         _error "list" "$(_not_registered_msg "$cmd")"
