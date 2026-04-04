@@ -1,17 +1,17 @@
-if [[ -z "$MON_SETUP" ]]; then
-    export MON_SETUP=1
+# Source mon completions
+if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
+    source "{{MON_COMPLETIONS_BASH}}/mon"
+fi
+if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
+    source "{{MON_COMPLETIONS_ZSH}}/mon"
+fi
 
-    # Export monkeypat.sh and registered binary commands
+if ! echo "$PATH" | grep -qE '\.mon\/'; then
+    # Export monkeypat.sh
     export PATH="{{MON_DIR}}/src/:$PATH"
-    export PATH="{{MON_REGISTERED_BIN}}:$PATH"
 
-    # Source mon completions
-    if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
-        source "{{MON_COMPLETIONS_BASH}}/mon"
-    fi
-    if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
-        source "{{MON_COMPLETIONS_ZSH}}/mon"
-    fi
+    # Export registered binary commands
+    export PATH="{{MON_REGISTERED_BIN}}:$PATH"
 fi
 
 function __mon_alias() {
