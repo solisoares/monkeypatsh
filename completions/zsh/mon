@@ -161,5 +161,5 @@ _mon_completion() {
     esac
 }
 
-compdef _mon_completion monkeypat.sh
+compdef _mon_completion __mon_alias
 compdef _mon_completion mon
