@@ -426,22 +426,22 @@ function _unregister() {
 function __check() {
     # Quick sanity check.
     _info "============= .rc file ($MON_RC_FILE) ============="
-    _info -e "$(cat $MON_RC_FILE)\n"
+    _info "$(cat $MON_RC_FILE)\n"
 
     _info "============= .config file ($MON_CONFIG_FILE) ============="
-    _info -e "$(cat $MON_CONFIG_FILE)\n"
+    _info "$(cat $MON_CONFIG_FILE)\n"
 
     _info "============= registered ($MON_REGISTERED) ============="
-    _info -e "$alias_title"
-    _info -e "$(ls -l $MON_REGISTERED_ALIAS)\n"
-    _info -e "$bin_title"
-    _info -e "$(ls -l $MON_REGISTERED_BIN)\n"
+    _info "$alias_title"
+    _info "$(ls -l $MON_REGISTERED_ALIAS)\n"
+    _info "$bin_title"
+    _info "$(ls -l $MON_REGISTERED_BIN)\n"
 
     _info "============= completions ($MON_COMPLETIONS_BASH) ============="
-    _info -e "$(ls -l $MON_COMPLETIONS_BASH)\n"
+    _info "$(ls -l $MON_COMPLETIONS_BASH)\n"
 
     _info "============= completions ($MON_COMPLETIONS_ZSH) ============="
-    _info -e "$(ls -l $MON_COMPLETIONS_ZSH)\n"
+    _info "$(ls -l $MON_COMPLETIONS_ZSH)\n"
 }
 
 function _edit() {
