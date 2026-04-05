@@ -111,9 +111,7 @@ function _register() {
             old_location="$(_registered_dir $cmd)"
             if [ "$location" = "$old_location" ]; then
                 _error "register" "$(_is_registered_msg $cmd)"
-                if [ "${#cmds[@]}" -eq 1 ]; then
-                    return 1
-                fi
+                return 1
                 continue
             else
                 changed_location=1
@@ -408,7 +406,7 @@ function _unregister() {
 
         if ! _is_registered "$cmd"; then
             _error "unregister" "$(_not_registered_msg "$cmd")"
-            continue
+            return 1
         fi
 
         if _is_alias "$cmd"; then
@@ -736,6 +734,10 @@ function _restore() {
     fi
 
     local backup_file="$1"
+    if [[ ! -e "$backup_file" ]]; then
+        _error "restore" "file '$backup_file' does not exist"
+        return 1
+    fi
 
     local tmp_dir="$(mktemp -d)"
     local mon_rc_bak="$tmp_dir/$(basename $MON_RC_FILE)"
