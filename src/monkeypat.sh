@@ -374,20 +374,27 @@ function _unregister() {
     local args=()
     local question
     if [[ $# -eq 1 ]] && [[ $1 = "--alias" || "$1" = "-a" || $1 = "--bin" || "$1" = "-b" || $1 = "--all" || "$1" = "-A" ]]; then
-        if [[ -z "$(__list_full)" ]]; then
-            _info "No registered commands"
-            return
-        fi
-
         if [[ $1 = "--alias" || "$1" = "-a" ]]; then
+            if [[ -z "$(__list_alias)" ]]; then
+                _info "No registered aliases"
+                return
+            fi
             read -d '\n' -a args <<<"$(__list_alias)"
             question="Unregister all aliases?"
 
         elif [[ $1 = "--bin" || "$1" = "-b" ]]; then
+            if [[ -z "$(__list_bin)" ]]; then
+                _info "No registered binaries"
+                return
+            fi
             read -d '\n' -a args <<<"$(__list_bin)"
             question="Unregister all binaries?"
 
         elif [[ $1 = "--all" || "$1" = "-A" ]]; then
+            if [[ -z "$(__list_full)" ]]; then
+                _info "No registered commands"
+                return
+            fi
             read -d '\n' -a args <<<"$(__list_full)"
             question="Unregister all commands?"
         fi
