@@ -15,6 +15,7 @@ MON_COMPLETIONS_ZSH=$MON_DIR/completions/zsh
 
 MON_TO_UNALIAS=$MON_DIR/.to_unalias
 MON_TO_UNHASH=$MON_DIR/.to_unhash
+MON_TO_REFRESH_COMPLETION=$MON_DIR/.to_refresh_completion
 
 MON_BIN=$MON_DIR/src/monkeypat.sh
 
@@ -79,6 +80,7 @@ function _render() {
     local var_values=("${var_data[@]:$half_len:$half_len}")
 
     sed_expressions=""
+    local i
     for i in "${!var_names[@]}"; do
         name="${var_names[$i]}"
         value="${var_values[$i]}"

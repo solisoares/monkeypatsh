@@ -170,6 +170,8 @@ function _register() {
         _render "$completion_template_bash" 'cmd' "$cmd" >"$MON_COMPLETIONS_BASH/$cmd"
         _render "$completion_template_zsh" 'cmd' "$cmd" >"$MON_COMPLETIONS_ZSH/$cmd"
 
+        echo "$cmd" >> "$MON_TO_REFRESH_COMPLETION"
+
         _info "Registered command '$cmd'"
     done
 }

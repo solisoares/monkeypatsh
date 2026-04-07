@@ -1,9 +1,23 @@
-# Source mon completions
-if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
-    source "{{MON_COMPLETIONS_BASH}}/mon"
-fi
-if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
-    source "{{MON_COMPLETIONS_ZSH}}/mon"
+function __mon_source_completions() {
+    local cmd="${1:-*}" # specific command or all (including mon)
+
+    if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
+        local file
+        while read -r file; do
+            source "$file"
+        done <<<"$(find "{{MON_COMPLETIONS_BASH}}" -type f -name "$cmd")"
+    fi
+    if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
+        local file
+        while read -r file; do
+            source "$file"
+        done <<<"$(find "{{MON_COMPLETIONS_ZSH}}" -type f -name "$cmd")"
+    fi
+}
+
+if ! type _mon_completion >/dev/null 2>&1; then
+    # Source all completions
+    __mon_source_completions
 fi
 
 if ! echo "$PATH" | grep -qE '\.mon\/'; then
@@ -22,23 +36,22 @@ function __mon_alias() {
         return "$exit"
     fi
 
-    local cmd="$1"
-    case "$cmd" in
+    local mon_cmd="$1"
+    case "$mon_cmd" in
     reg | regi | regis | regist | registe | register | \
         res | rest | resto | restor | restore)
         # Refresh aliases
         source "{{MON_RC_FILE}}"
 
         # Refresh completions
-        if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
-            local registered_completions
-            read -d '\n' -a registered_completions <<<"$(find "{{MON_COMPLETIONS_BASH}}" -type f ! -name 'mon')"
-            for file in "${registered_completions[@]}"; do source "$file"; done
-        fi
-        if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
-            local registered_completions
-            read -d '\n' -a registered_completions <<<"$(find "{{MON_COMPLETIONS_ZSH}}" -type f ! -name 'mon')"
-            for file in "${registered_completions[@]}"; do source "$file"; done
+        if [[ "$mon_cmd" =~ reg.* ]]; then
+            local cmd
+            while read -r cmd; do
+                __mon_source_completions "$cmd"
+            done <<<"$(cat "{{MON_TO_REFRESH_COMPLETION}}")"
+            rm "{{MON_TO_REFRESH_COMPLETION}}"
+        else
+            __mon_source_completions
         fi
         ;;
     unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
