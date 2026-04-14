@@ -170,7 +170,7 @@ function _register() {
         _render "$completion_template_bash" 'cmd' "$cmd" >"$MON_COMPLETIONS_BASH/$cmd"
         _render "$completion_template_zsh" 'cmd' "$cmd" >"$MON_COMPLETIONS_ZSH/$cmd"
 
-        echo "$cmd" >> "$MON_TO_REFRESH_COMPLETION"
+        echo "$cmd" >>"$MON_TO_REFRESH_COMPLETION"
 
         _info "Registered command '$cmd'"
     done
@@ -403,7 +403,7 @@ function _unregister() {
 
         if ! _has_confirmed "$question" 'y'; then
             _info "Aborting unregister..."
-            return 1
+            return
         fi
     else
         args=("$@")
@@ -688,6 +688,12 @@ function _uninstall() {
 function _backup() {
     local backup_file=~/.mon.bak."$(date -I)".tar
 
+    if [[ "$#" -eq 1 ]]; then
+        _error "backup" "wrong syntax for 'backup'"
+        _error_hint "See 'mon help'."
+        return 1
+    fi
+
     if [[ $# -eq 2 ]] && [[ "$1" = '-f' || "$1" = '--file' ]]; then
         backup_file="$2"
         if [ "${backup_file:0:1}" = '~' ]; then
@@ -700,7 +706,7 @@ function _backup() {
 
         if ! _has_confirmed "Overwrite?"; then
             _info "Aborting backup..."
-            return 1
+            return
         fi
     fi
 
@@ -729,7 +735,7 @@ function _backup() {
     #           \_ ...
     tar -cf "$backup_file" -C ~ "$mon_rc" "$mon_config"
     tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_REGISTERED)" >/dev/null 2>&1
-    tar -uf "$backup_file" -C "$MON_DIR" "$(basename $MON_COMPLETIONS)" >/dev/null 2>&1
+    tar -uf "$backup_file" -C "$MON_DIR" --exclude="mon" "$(basename $MON_COMPLETIONS)" >/dev/null 2>&1
 
     _info "Backed up monkeypatsh."
     _info "To restore run: 'mon restore $backup_file'"
@@ -890,6 +896,7 @@ function mon() {
     *)
         _error "" "unrecognized command '$mon_cmd'"
         _error_hint "Try 'mon help' for more information."
+        return 1
         ;;
     esac
 }

@@ -17,6 +17,12 @@ MON_TO_UNALIAS=$MON_DIR/.to_unalias
 MON_TO_UNHASH=$MON_DIR/.to_unhash
 MON_TO_REFRESH_COMPLETION=$MON_DIR/.to_refresh_completion
 
+if [[ "$MON_TESTING" -eq 1 ]]; then
+    MON_TO_UNALIAS=/dev/null
+    MON_TO_UNHASH=/dev/null
+    MON_TO_REFRESH_COMPLETION=/dev/null
+fi
+
 MON_BIN=$MON_DIR/src/monkeypat.sh
 
 # Aliases to the wrappers and appended PATH variables

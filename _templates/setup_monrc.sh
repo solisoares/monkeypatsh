@@ -4,13 +4,17 @@ function __mon_source_completions() {
     if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
         local file
         while read -r file; do
-            source "$file"
+            if [[ -f "$file" ]]; then
+                source "$file"
+            fi
         done <<<"$(find "{{MON_COMPLETIONS_BASH}}" -type f -name "$cmd")"
     fi
     if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
         local file
         while read -r file; do
-            source "$file"
+            if [[ -f "$file" ]]; then
+                source "$file"
+            fi
         done <<<"$(find "{{MON_COMPLETIONS_ZSH}}" -type f -name "$cmd")"
     fi
 }

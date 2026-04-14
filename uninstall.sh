@@ -15,7 +15,7 @@ function rm_mondir() {
     # we remove by parts
     if [ -L "$(echo $MON_DIR | sed 's:/*$::')" ]; then
         # Remove stuff not present in source
-        rm -rf "$MON_REGISTERED" "$MON_TO_UNALIAS" "$MON_TO_UNHASH"
+        rm -rf "$MON_REGISTERED" "$MON_TO_UNALIAS" "$MON_TO_UNHASH" "$MON_TO_REFRESH_COMPLETION"
         # Remove all completions not present in source
         find "$MON_COMPLETIONS_BASH" -type f | grep -v "$MON_COMPLETIONS_BASH/mon" | xargs -I {} rm {}
         find "$MON_COMPLETIONS_ZSH" -type f | grep -v "$MON_COMPLETIONS_ZSH/mon" | xargs -I {} rm {}
