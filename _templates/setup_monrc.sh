@@ -57,7 +57,7 @@ function __mon_alias() {
         source "{{MON_RC_FILE}}"
 
         # Refresh completions
-        if [[ "$mon_cmd" =~ reg.* ]]; then
+        if [[ "$mon_cmd" =~ reg.* && -f  "{{MON_TO_REFRESH_COMPLETION}}" ]]; then
             local cmd
             while read -r cmd; do
                 __mon_source_completions "$cmd"

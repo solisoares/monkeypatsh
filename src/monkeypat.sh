@@ -82,7 +82,12 @@ function _register() {
         shift
         ;;
     *)
-        location="$MON_REGISTERED_ALIAS"
+        local register_mode="$(__parse_config 'register_mode')"
+        if [[ "$register_mode" = 'bin' ]]; then
+            location="$MON_REGISTERED_BIN"
+        else
+            location="$MON_REGISTERED_ALIAS"
+        fi
         ;;
     esac
 
@@ -172,26 +177,36 @@ function _register() {
 
         echo "$cmd" >>"$MON_TO_REFRESH_COMPLETION"
 
-        _info "Registered command '$cmd'"
+        if [[ "$location" = "$MON_REGISTERED_ALIAS" ]]; then
+            _info "Registered alias command '$cmd'"
+        else
+            _info "Registered binary command '$cmd'"
+        fi
     done
+}
+
+function __parse_config() {
+    local config="$1"
+
+    if [[ ! -f "$MON_CONFIG_FILE" ]]; then
+        _error "config" "'$MON_CONFIG_FILE' no such file"
+        exit 1
+    fi
+
+    value="$(
+        cat $MON_CONFIG_FILE |
+            grep -v '[[:space:]]*#' | grep -E "$config[[:space:]]*=" |
+            sed -E "s/.*$config[[:space:]]*=[[:space:]]*([a-zA-Z0-9_]+).*/\1/"
+    )"
+
+    echo "$value"
 }
 
 function _open_file() {
     local file="$1"
     local pattern="$2"
 
-    local config_editor
-    if [[ -f "$MON_CONFIG_FILE" ]]; then
-        config_editor="$(
-            cat $MON_CONFIG_FILE |
-                grep -v '[[:space:]]*#' | grep -E 'editor[[:space:]]*=' |
-                sed -E 's/.*editor[[:space:]]*=[[:space:]]*([a-zA-Z0-9_]+).*/\1/'
-        )"
-        if [[ -n "$config_editor" ]] && ! command -v "$config_editor" >/dev/null; then
-            _error "config" "'$config_editor' not found"
-            return 1
-        fi
-    fi
+    local config_editor="$(__parse_config 'editor')"
 
     if [[ -z "$config_editor" ]] && [[ -n "$EDITOR" ]] && ! command -v "$EDITOR" >/dev/null; then
         _error "config" "'$EDITOR' not found"
@@ -775,8 +790,9 @@ function _help() {
     cat <<'EOF'
 Commands available:
     register <cmd>...                    - Register commands to be wrapped with monkeypatsh, as aliases or binaries.
-             | [-a | --alias] <cmd>...     If no flag is provided, or the flag `--alias` is provided, register commands as aliases.
+             | [-a | --alias] <cmd>...     If the flag `--alias` is provided, register commands as aliases.
              | [-b | --bin] <cmd>...       If the flag `--bin` is provided, register commands as binaries (executables available via PATH).
+                                           If no flag is provided, `--alias` is assumed by default. You can change this behavior[1].
                                            Since aliases cannot be called by default in scripts, they are a great choice for
                                            patching existing commands in interactive shells. Like registering git, ls, ...
                                            Binaries on the other hand, can be called inside scripts by default, and therefore
@@ -791,7 +807,7 @@ Commands available:
                                                 mon patch ls --bar 'echo bar!!!'
                                                 (*): Keep your inline code simple. If you want to parse arguments or your
                                                 code span multiple lines, use the second format.
-                                           2) You can summon your editor[1] and put your code there:
+                                           2) You can summon your editor[2] and put your code there:
                                                 mon patch ls foo
                                                 mon patch ls --bar
 
@@ -800,7 +816,7 @@ Commands available:
                | -a | --alias              all commands at once, all alias, or all binaries.
                | -b | --bin
 
-    edit [<cmd>]                         - Edit a registered command wrapper's or a patch with your preferred code editor[1].
+    edit [<cmd>]                         - Edit a registered command wrapper's or a patch with your preferred code editor[2].
          | [<cmd> <sub>]                   If you don't provide any arguments (`mon edit`) monkeypatsh opens the registered directory.
          | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
          | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
@@ -832,7 +848,18 @@ Options available:
 Configuring monkeypatsh:
     You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file (`mon edit -c | --config`).
 
-    [1] Changing default code editor: `editor=<editor>`
+    [1] Change default register mode
+         `register_mode=alias|bin`
+
+          Monkeypatsh was built around the idea of patching existing commands,
+          so by default, `mon register <cmd>` behaves as `mon register --alias <cmd>`.
+          This is ideal if you mainly use Monkeypatsh to augment existing commands
+          with new functionality. If instead you primarily use it to create entirely
+          new commands, you can set `register_mode=bin` so that `mon register`
+          defaults to `mon register --bin`.
+
+    [2] Change default code editor
+        `editor=<editor>`
 
 EOF
 }

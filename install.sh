@@ -44,11 +44,7 @@ function setup_monrc_file() {
 }
 
 function add_monconfig_file() {
-    cat <<-EOF >"$MON_CONFIG_FILE"
-	# Add your configs here
-	# Lines starting with '#' are comments
-	# editor=vim
-	EOF
+    _render "$MON_TEMPLATES/monconfig.sh" >"$MON_CONFIG_FILE"
 
     _log "Created file: $MON_CONFIG_FILE"
 }
