@@ -820,7 +820,7 @@ Commands available:
                                            the source dir.
 
     backup [-f | --file <file>]          - Backup monkeypatsh into a restorable file.
-	                                       If -f or --file is not provided, backups into ~/.mon.bak.tar
+	                                       If -f or --file is not provided, backups into ~/.mon.bak.<date>.tar
 
     restore <file>                       - Restore monkeypatsh from file.
 
