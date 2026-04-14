@@ -1,3 +1,7 @@
+# This file is sourced from your shell .rc file.
+# It setups completions and appropriate PATHs on the first source. And refreshes
+# commands automatically on the go.
+
 function __mon_source_completions() {
     local cmd="${1:-*}" # specific command or all (including mon)
 
@@ -33,6 +37,10 @@ if ! echo "$PATH" | grep -qE '\.mon\/'; then
 fi
 
 function __mon_alias() {
+    # Monkeypatsh is itself an alias that calls the real monkeypat.sh and after
+    # the execution keeps the session up to date so no refresh is needed. I tried
+    # to keep this alias minimal because it must be portable across shells.
+
     # Main execution
     "{{MON_BIN}}" "$@"
     local exit="$?"
@@ -40,6 +48,7 @@ function __mon_alias() {
         return "$exit"
     fi
 
+    # Keep session up to date
     local mon_cmd="$1"
     case "$mon_cmd" in
     reg | regi | regis | regist | registe | register | \
@@ -70,7 +79,6 @@ function __mon_alias() {
     esac
 }
 
-# Monkeypatsh is itself an alias
 alias mon='__mon_alias'
 
 # --- REGISTERED ALIASES ---
