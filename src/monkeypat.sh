@@ -797,90 +797,140 @@ function _restore() {
 
 function _help() {
     cat <<'EOF'
-Commands available:
-    register <cmd>...                    - Register commands to be wrapped with monkeypatsh, as aliases or binaries.
-             | [-a | --alias] <cmd>...     If the flag `--alias` is provided, register commands as aliases.
-             | [-b | --bin] <cmd>...       If the flag `--bin` is provided, register commands as binaries (executables available via PATH).
-                                           If no flag is provided, `--alias` is assumed by default. You can change this default behavior[1].
-                                           Since aliases cannot be called by default in scripts, they are a great choice for
-                                           patching existing commands in interactive shells. Like registering git, ls, ...
-                                           Binaries on the other hand, can be called inside scripts by default, and therefore
-                                           are a great choice for new commands.
-                                           To change from one registration method to the other, just re-register the commands with
-                                           the other flag. For example, if `foo` is registered as an alias `mon register --alias foo`,
-                                           to change it to an binary, just run `mon register --bin foo`.
+Usage:  mon <command> [options]
+        mon [-h | --help | help]
 
-    patch <cmd> <sub> [<code>]           - Patch a sub command or option to the registered command. There are 2 ways.
-                                           1) You can add your code inline(*):
-                                                mon patch ls foo 'echo foo!!!'
-                                                mon patch ls --bar 'echo bar!!!'
-                                                (*): Keep your inline code simple. If you want to parse arguments or your
-                                                code span multiple lines, use the second format.
-                                           2) You can summon your editor[3] and put your code there:
-                                                mon patch ls foo
-                                                mon patch ls --bar
+Commands:
+  register <cmd>...
+           | [-a | --alias] <cmd>...
+           | [-b | --bin] <cmd>...
 
-    unregister <cmd>...                  - Unregister commands. This deletes the wrapper for that command.
-               | -A | --all                By providing `--all`, `--alias` or `--bin` and their respective short versions, you can unregister
-               | -a | --alias              all commands at once, all alias, or all binaries.
-               | -b | --bin
+        Register commands to be wrapped with monkeypatsh as aliases or binaries.
 
-    list [<cmd>]                         - List registered commands and patches.
-         | [-a | --alias]                  If no commands or flags are provided, list all registered commands in a pretty format. You can change this default behavior[2].
-         | [-b | --bin]                    If a `<cmd>` is provided, list its patches.
-         | [-f | --flat]                   If `-a` or `--alias` is provided, list registered alias.
-         | [-r | --recursive]              If `-b` or `--bin` is provided, list registered binaries.
-                                           By default, the list for registered commands nicely distinguish aliases from binaries,
-                                           provide `-f` or `--flat` to get a flat list.
-                                           If `-r` or `--recursive` is provided, list registered commands and their patches.
+        -a, --alias   Register as a shell alias. Since aliases cannot be called
+                      by default in scripts, they are a great choice for patching
+                      existing commands in interactive shells, like git, ls ...
+        -b, --bin     Register as a binary (executable on PATH). Binaries work
+                      inside scripts and are ideal for entirely new commands.
 
-    edit [<cmd>]                         - Edit a registered command wrapper's or a patch with your preferred code editor[3].
-         | [<cmd> <sub>]                   If you don't provide any arguments (`mon edit`) monkeypatsh opens the registered directory.
-         | [-c | --config]                 You can quick edit the .monconfig file with the option -c or --config.
-         | [-r | --rc]                     And you can also quick edit the .monrc file, although not recommended,
-                                           since it is automatically generated.
-                                           If you want to edit mon source code itself you can do `mon edit mon`.
+        If no flag is given, --alias is assumed. To change this default, change
+        'register_mode' in ~/.monconfig (mon edit --config):
 
-    uninstall                            - Uninstall monkeypatsh. Can also be run as `bash uninstall.sh` from
-                                           the source dir.
+            register_mode=alias|bin
 
-    backup [-f | --file <file>]          - Backup monkeypatsh into a restorable file.
-	                                       If -f or --file is not provided, backups into ~/.mon.bak.<date>.tar
+        To switch a command from alias to bin (or vice versa), re-register it
+        with the desired flag:
 
-    restore <file>                       - Restore monkeypatsh from file.
+            mon register --alias foo # register as alias
+            mon register --bin foo   # re-register as binary
 
-    help                                 - Show this help and exit. Can also be shown with just `mon`.
+  patch <cmd> <sub> [<code>]
+        Add a subcommand or option patch to a registered command.
 
-Options available:
-    -h|--help                            - Show this help and exit. Can also be shown with just `mon`.
+        Interactive (opens your editor):
+            mon patch ls foo
+            mon patch ls --bar
 
-Configuring monkeypatsh:
-    You can configure how monkeypatsh behaves tweaking configs in the ~/.monconfig file (`mon edit -c | --config`).
+        Inline (for simple one-liners):
+            mon patch ls foo 'echo foo!'
+            mon patch ls --bar 'echo bar!'
 
-    Note: The configurations listed below affect the default behavior for the commands (when no flags used).
-          For specific behaviors, use the apropriate flags.
+  unregister <cmd>...
+             | [ -A | --all]
+             | [ -a | --alias]
+             | [ -b | --bin]
 
-    [1] Change default register mode. Defaults to `alias`
-         `register_mode=alias|bin`
+        Unregister commands, deleting their monkeypatsh wrappers.
 
-          Monkeypatsh was built around the idea of patching existing commands,
-          so by default, registering commands with no flags is the same as with
-          the `--alias` flag. Making `mon register` equal to `mon register
-          --alias`. This is ideal if you mainly use Monkeypatsh to augment
-          existing commands with new functionality. If instead you primarily use
-          it to create entirely new commands, you can set `register_mode=bin` so
-          that `mon register` defaults to `mon register --bin`.
+        -A, --all     Unregister all registered commands.
+        -a, --alias   Unregister all registered aliases.
+        -b, --bin     Unregister all registered binaries.
 
-    [2] Change default list mode
-        `list_mode=flat|pretty|recursive`. Defaults to `pretty`.
+  list [<cmd>]
+       | [-a | --alias]
+       | [-b | --bin]
+       | [-f | --flat]
+       | [-p | --pretty]
+       | [-r | --recursive]
 
-        By default, when invoking `mon list` Monkeypatsh lists all commands in a pretty format.
-        You can make it default to list all commands and their subcommands/flags with the `recursive`
-        option or in a flat list with `flat`, with the cost of no glorious look I made it to be.
+        List registered commands and their patches.
 
-    [3] Change default code editor. Defaults to your `EDITOR` or `vi`
-        `editor=<editor>`
+        (no args)       List all commands in pretty format (default).
+        <cmd>           List patches for the given command.
+        -a, --alias     List only registered aliases.
+        -b, --bin       List only registered binaries.
+        -f, --flat      List all commands as a plain flat list.
+        -p, --pretty    List all commands with visual alias/bin grouping.
+        -r, --recursive List all commands and their patches with visual alias/bin grouping.
 
+        To change what 'mon list' does with no arguments, change 'list_mode'
+        in ~/.monconfig (mon edit --config):
+
+            list_mode=pretty|flat|recursive
+
+  edit [<cmd>]
+       | [<cmd> <sub>]
+       | [-c | --config]
+       | [-r | --rc]
+
+        Open a registered command wrapper or patch in your editor.
+
+        (no args)       Open the registered commands directory.
+        <cmd>           Edit the wrapper for <cmd>.
+        <cmd> <sub>     Edit the patch <sub> within <cmd>.
+        -c, --config    Edit ~/.monconfig directly.
+        -r, --rc        Edit ~/.monrc directly (auto-generated, edit with care).
+
+        If you want to add monkeypatsh source code, you can quickly do so with
+        'mon edit mon'.
+
+  backup [-f | --file <file>]
+
+        Back up monkeypatsh configuration into a restorable archive.
+        Defaults to ~/.mon.bak.<date>.tar
+
+        -f, --file <file>   Write the backup to <file>.
+
+  restore <file>
+        Restore monkeypatsh configuration from a backup archive.
+
+  uninstall
+        Uninstall monkeypatsh. Equivalent to running bash uninstall.sh from
+        the source directory.
+
+  help
+        Show this help and exit.
+
+Options:
+  -h, --help
+        Show this help and exit.
+
+Configuration:
+  Behavior defaults can be changed in ~/.monconfig (edit with: mon edit --config).
+  Settings below only affect default behavior when no flags are provided; use
+  explicit flags to override at any time.
+
+  register_mode = alias|bin
+      Controls what 'mon register <cmd>' does without a flag.
+      Defaults to 'alias'.
+
+      Monkeypatsh was built around the idea of patching existing
+      commands, so by default, it register aliases.
+
+      alias  -  Register shell alias (good for patching existing tools).
+      bin    -  Register binaries    (good for creating new commands).
+
+  list_mode = pretty|flat|recursive
+      Controls what 'mon list' displays without a flag.
+      Defaults to 'pretty'.
+
+      pretty     - Visual alias/bin grouping.
+      flat       - Plain list of all command names.
+      recursive  - All commands with their patches expanded.
+
+  editor = <editor>
+      Editor used when opening files interactively (patch, edit).
+      Defaults to '$EDITOR' or 'vi'
 EOF
 }
 
