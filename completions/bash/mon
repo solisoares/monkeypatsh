@@ -123,7 +123,7 @@ _mon_completion() {
         local registered="$(monkeypat.sh __list_full)"
 
         if [[ "$cur" =~ ^- ]]; then # mon list <cur-flag>
-            COMPREPLY=($(compgen -W "-a --alias -b --bin -f --flat -r --recursive" -- "$cur"))
+            COMPREPLY=($(compgen -W "-a --alias -b --bin -f --flat -p --pretty -r --recursive" -- "$cur"))
         else # mon list <cur-cmd>
             COMPREPLY=($(compgen -W "$registered" -- "$cur"))
         fi

@@ -12,8 +12,6 @@ _mon_completion() {
         'backup:Backup configuration'
         'restore:Restore configuration'
         'help:Show help'
-        # '-h:Show help'
-        # '--help:Show help'
     )
 
     local word1="${words[2]:-}"
@@ -136,6 +134,7 @@ _mon_completion() {
                         '-a[Alias]' '--alias[Alias]' \
                         '-b[Binary]' '--bin[Binary]' \
                         '-f[Flat]' '--flat[Flat]' \
+                        '-p[Pretty]' '--pretty[Pretty]' \
                         '-r[Recursive]' '--recursive[Recursive]'
                 else
                     local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
