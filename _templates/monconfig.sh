@@ -1,5 +1,6 @@
 # Add your configs here
 # Lines starting with '#' are comments
 
-# register_mode=alias
-# editor=vim
+# register_mode=alias      # alias|bin
+# list_mode=pretty         # flat|pretty|recursive
+# editor=vi
