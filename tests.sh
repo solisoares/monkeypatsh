@@ -412,7 +412,7 @@ function _test_bash_completion() {
         "completion for 'mon register --a[tab] == --alias'"
 
     _is_equal "--alias" \
-        "$(__get_compreply 'mon' 'unregister' '--a')" \
+        "$(__get_compreply 'mon' 'unregister' '--ali')" \
         "completion for 'mon unregister --a[tab] == --alias'"
 
     _is_equal "__test_cmd1__" \

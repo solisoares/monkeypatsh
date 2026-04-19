@@ -12,7 +12,7 @@ _mon_completion() {
     fi
 
     # mon register <cur>
-    if [[ "$word1" =~ (reg|regi|regis|regist|registe|register) && "$length" -ge 3 ]]; then
+    if [[ "$word1" =~ ^(reg|regi|regis|regist|registe|register)$ && "$length" -ge 3 ]]; then
         if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then # mon register <cur-flag>
             COMPREPLY=($(compgen -W "-a -b --alias --bin" -- "$cur"))
             return
@@ -39,7 +39,7 @@ _mon_completion() {
         COMPREPLY=()
 
     # mon patch <cur>
-    elif [[ "$word1" =~ (pat|patc|patch) && "$length" -ge 3 ]]; then
+    elif [[ "$word1" =~ ^(pat|patc|patch)$ && "$length" -ge 3 ]]; then
         # mon patch <cur-cmd>
         local registered="$(monkeypat.sh __list_full)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
@@ -79,7 +79,7 @@ _mon_completion() {
         fi
 
     # mon unregister <cur>
-    elif [[ "$word1" =~ (unr|unre|unreg|unregi|unregis|unregist|unregiste|unregister) && "$length" -ge 3 ]]; then
+    elif [[ "$word1" =~ ^(unr|unre|unreg|unregi|unregis|unregist|unregiste|unregister)$ && "$length" -ge 3 ]]; then
         # mon unregister <cur-cmd>
         local registered="$(monkeypat.sh __list_full)"
         COMPREPLY=($(compgen -W "$registered" -- "$cur"))
@@ -98,7 +98,7 @@ _mon_completion() {
         fi
 
     # mon edit <cur>
-    elif [[ "$word1" =~ (edi|edit) && "$length" -ge 3 ]]; then
+    elif [[ "$word1" =~ ^(edi|edit)$ && "$length" -ge 3 ]]; then
         local registered="$(monkeypat.sh __list_full)"
 
         if [[ "$length" -eq 3 ]]; then
@@ -119,7 +119,7 @@ _mon_completion() {
         COMPREPLY=()
 
     # mon list <cur>
-    elif [[ "$word1" =~ (lis|list) && "$length" -ge 3 ]]; then
+    elif [[ "$word1" =~ ^(lis|list)$ && "$length" -ge 3 ]]; then
         local registered="$(monkeypat.sh __list_full)"
 
         if [[ "$cur" =~ ^- ]]; then # mon list <cur-flag>
@@ -132,7 +132,7 @@ _mon_completion() {
         fi
 
     # mon backup <cur>
-    elif [[ "$word1" =~ (bac|back|backu|backup) && "$length" -ge 3 ]]; then
+    elif [[ "$word1" =~ ^(bac|back|backu|backup)$ && "$length" -ge 3 ]]; then
         # mon backup <cur-flag>
         COMPREPLY=($(compgen -W '-f --file' -- "$cur"))
 
@@ -144,7 +144,7 @@ _mon_completion() {
         fi
 
     # mon restore <cur-file>
-    elif [[ "$word1" =~ (res|rest|resto|restor|restore) && "$length" -ge 3 ]]; then
+    elif [[ "$word1" =~ ^(res|rest|resto|restor|restore)$ && "$length" -ge 3 ]]; then
         COMPREPLY=($(compgen -f -- "$cur"))
         if [ "$length" -ge 4 ]; then
             COMPREPLY=()
