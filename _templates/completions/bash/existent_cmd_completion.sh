@@ -1,7 +1,3 @@
-if declare -F _mon_{{cmd}}_completion >/dev/null; then
-    return
-fi
-
 # Save the original bash completion function and options for the command
 __mon_{{cmd}}_orig_completion="$(complete -p {{cmd}} 2>/dev/null)"
 __mon_{{cmd}}_orig_completion_no_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/complete(.*)[[:space:]]+-F.*/\1/')"

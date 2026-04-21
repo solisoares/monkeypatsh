@@ -1,7 +1,3 @@
-if typeset -f _mon_{{cmd}}_completion >/dev/null; then
-    return
-fi
-
 # Save the original zsh completion function for the command
 _mon_{{cmd}}_orig_completion=$_comps[{{cmd}}]
 
