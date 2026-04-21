@@ -4,7 +4,7 @@ fi
 
 # Save the original bash completion function and options for the command
 __mon_{{cmd}}_orig_completion="$(complete -p {{cmd}} 2>/dev/null)"
-__mon_{{cmd}}_orig_completion_no_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/complete[[:space:]]+(.*)[[:space:]]+-F.*/\1/')"
+__mon_{{cmd}}_orig_completion_no_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/complete(.*)[[:space:]]+-F.*/\1/')"
 __mon_{{cmd}}_orig_completion_func="$(echo "$__mon_{{cmd}}_orig_completion" | sed -E 's/.*[[:space:]]+-F[[:space:]]+([a-zA-Z_]+)[[:space:]]+[a-zA-Z_]+/\1/')"
 
 function _mon_{{cmd}}_completion() {
@@ -12,7 +12,7 @@ function _mon_{{cmd}}_completion() {
     local length="${#COMP_WORDS[@]}"
 
     # Set COMPREPLY with original complete function
-    ${__mon_{{cmd}}_orig_completion_func:-${_minimal:-}}
+    ${__mon_{{cmd}}_orig_completion_func:-${_minimal:-}} "$@"
 
     # Update COMPREPLY with the patches
     if [ "$length" -eq 2 ]; then
