@@ -28,23 +28,19 @@ function _is_equal() {
 
 function _mon() {
     if [ "$1" = "list" ]; then
-        _error "$0" "use '_mon_list' to get list output" >&2
-        exit 1
+        shift
+        case "$1" in
+        -a | --alias | -b | --bin | -f | --flat | __test_cmd*)
+            monkeypat.sh list "$@"
+            ;;
+        *)
+            _error "$0" "'$1' is not a valid option for '_mon list'" >&2
+            exit 1
+            ;;
+        esac
     fi
     monkeypat.sh "$@" >/dev/null 2>&1
     return "$?"
-}
-
-function _mon_list() {
-    case "$1" in
-    -a | --alias | -b | --bin | -f | --flat | __test_cmd*)
-        monkeypat.sh list "$@"
-        ;;
-    *)
-        _error "$0" "'$1' is not a valid option for '_mon_list'" >&2
-        exit 1
-        ;;
-    esac
 }
 
 function __log_util() {
@@ -326,7 +322,7 @@ __test_cmd3__
 __test_cmd4__
 __test_cmd5__"
 
-    actual_aliases="$(_mon_list --alias)"
+    actual_aliases="$(_mon list --alias)"
     if [[ "$expected_aliases" = "$actual_aliases" ]]; then
         __log_util --success "list alias commands"
     else
@@ -337,7 +333,7 @@ __test_cmd5__"
     expected_bins="\
 __test_cmd6__
 __test_cmd7__"
-    actual_bins="$(_mon_list --bin)"
+    actual_bins="$(_mon list --bin)"
     if [[ "$expected_bins" = "$actual_bins" ]]; then
         __log_util --success "list bin commands"
     else
@@ -347,7 +343,7 @@ __test_cmd7__"
     # List patches
     expected_patches="\
 --foo"
-    actual_patches="$(_mon_list __test_cmd1__)"
+    actual_patches="$(_mon list __test_cmd1__)"
     if [[ "$expected_patches" = "$actual_patches" ]]; then
         __log_util --success "list command patches"
     else
@@ -355,7 +351,7 @@ __test_cmd7__"
     fi
 
     # List unregistered
-    _mon_list __test_cmd_not_registered__ 2>/dev/null
+    _mon list __test_cmd_not_registered__ 2>/dev/null
     _is_equal "$?" 1 "cannot list non registered command"
 
 }
