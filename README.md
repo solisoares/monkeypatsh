@@ -189,6 +189,7 @@ The `tests.sh` covers the standard flow for monkeypatsh and bash completions.
 # Install and source monkeypatsh, then:
 bash tests.sh
 ```
+<img src="./assets/tests.gif" width="640"/>
 
 
 ---------------------------------------

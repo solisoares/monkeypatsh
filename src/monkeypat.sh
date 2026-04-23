@@ -157,7 +157,7 @@ function _register() {
         local completion_template
         local register_template
 
-        if which "$cmd" >/dev/null; then
+        if command -v "$cmd" >/dev/null; then
             register_template="$MON_TEMPLATES/register_existent_cmd.sh"
             completion_template_bash="$MON_TEMPLATES_COMPLETIONS_BASH/existent_cmd_completion.sh"
             completion_template_zsh="$MON_TEMPLATES_COMPLETIONS_ZSH/existent_cmd_completion.sh"
@@ -326,7 +326,7 @@ function _patch() {
     local patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
         patch_function_template="$MON_TEMPLATES/patch_new_cmd_function_empty.sh"
-        if which "$cmd" >/dev/null; then
+        if command -v "$cmd" >/dev/null; then
             patch_function_template="$MON_TEMPLATES/patch_existent_cmd_function_empty.sh"
         fi
     fi

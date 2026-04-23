@@ -388,7 +388,7 @@ function _test_bash_completion() {
         )
     }
 
-    # Mon completions ----------------------------
+    # ---------------------------- Mon completions ----------------------------
     # First level
     _is_equal "register" \
         "$(__get_compreply 'mon' 'reg')" \
@@ -443,10 +443,41 @@ function _test_bash_completion() {
         "$(__get_compreply 'mon' 'edit' '__test_cmd1__' '--non-existent-flag')" \
         "completion for 'mon edit __test_cmd1__ ----non-existent-flag[tab] == null'"
 
-    # Registered command completions -------------
+    # ----------------------------Registered new command completions ----------------------------
     _is_equal "--foo" \
         "$(__get_compreply '__test_cmd1__' '--f')" \
         "completion for '__test_cmd1__ --f[tab] == --foo'"
+
+    # ---------------------------- Registered existent command completions ----------------------------
+    function __test_existent_cmd__() { :; }
+    export -f __test_existent_cmd__
+
+    function __test_existent_cmd_completion__() {
+        local cur="${COMP_WORDS[$COMP_CWORD]}"
+        COMPREPLY=($(compgen -W "aaa --bbb -ccc" -- "$cur"))
+    }
+    complete -F __test_existent_cmd_completion__ __test_existent_cmd__
+
+    _mon register __test_existent_cmd__
+    _mon patch __test_existent_cmd__ --foo 'echo foo'
+
+    # Test original completion is working
+    _is_equal "aaa" \
+        "$(__get_compreply '__test_existent_cmd__' 'aa')" \
+        "original completion for '__test_existent_cmd__ --aa[tab] == aaa'"
+
+    _is_equal "--bbb" \
+        "$(__get_compreply '__test_existent_cmd__' '--bb')" \
+        "original completion for '__test_existent_cmd__ --bb[tab] == --bbb'"
+
+    _is_equal "-ccc" \
+        "$(__get_compreply '__test_existent_cmd__' '-cc')" \
+        "original completion for '__test_existent_cmd__ -cc[tab] == -ccc'"
+
+    # Test monkeypatsh completion is working
+    _is_equal "--foo" \
+        "$(__get_compreply '__test_existent_cmd__' '--f')" \
+        "patch completion for '__test_existent_cmd__ --f[tab] == --foo'"
 }
 
 function __summary_util() {
