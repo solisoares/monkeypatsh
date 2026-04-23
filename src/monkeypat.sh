@@ -232,7 +232,7 @@ function _open_file() {
         echo "$line"
     }
 
-    local line="$(__get_pattern_line "$pattern" $location/$cmd)"
+    local line="$(__get_pattern_line "$pattern" "$file")"
 
     if [[ -z "$line" ]]; then
         "$editor" "$file"
