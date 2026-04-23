@@ -5,6 +5,8 @@
 <br />
 <div align="center">Monkey patch any command in the Shell</div>
 
+$${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}$$
+
 ## Index
 - [What is Monkeypatsh?](#what-is-monkeypatsh)
   - [Why not just use aliases](#why-not-just-use-aliases)
