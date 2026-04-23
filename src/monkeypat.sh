@@ -297,9 +297,9 @@ function _patch() {
     local opt="$2"
     local code="$3"
 
-    if [[ "$#" -eq 0 ]]; then
+    if [[ "$#" -le 1 ]]; then
         _error "patch" "missing argument for 'patch'"
-        _error_hint "'patch' requires at least 1 argument, you provided $#"
+        _error_hint "'patch' requires at least 2 arguments, you provided $#"
         return 1
     fi
 
@@ -309,11 +309,6 @@ function _patch() {
     fi
 
     local location="$(_registered_dir "$cmd")"
-
-    if [[ "$#" -eq 1 ]]; then
-        _open_file "$location/$cmd" "_mon_default"
-        return
-    fi
 
     if _has_patch "$cmd" "$opt"; then
         _error "patch" "$(_has_patch_msg "$cmd" "$opt")"
@@ -830,11 +825,10 @@ Commands:
             mon register --alias foo # register as alias
             mon register --bin foo   # re-register as binary
 
-  patch <cmd> [<sub> [<code>]]
+  patch <cmd> <sub> [<code>]
         Add a subcommand or option patch to a registered command.
 
         Interactive (opens your editor):
-            mon patch ls
             mon patch ls foo
             mon patch ls --bar
 
