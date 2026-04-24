@@ -257,6 +257,7 @@ To start patching behavior to commands, register them with Monkeypatsh first.
 
 #### Registering an existing command
 If you want to patch behavior to **existing** commands, it's wise not to shadow them. To protect against shadowing, the default registration method is to register the command as an alias.
+> [!TIP]
 > You can change the default registration method in the [custom configs](#custom-configuration)
 
 ```bash
@@ -277,6 +278,7 @@ mon register --bin foo
 
 ### Patch behavior
 You can pass inline code for simple cases or invoke your preferred editor for complex cases.
+> [!TIP]
 > You can change the default editor used in the [custom configs](#custom-configuration)
 
 #### Inline patch
@@ -299,6 +301,7 @@ mon patch git status
 
 ### Edit commands
 Not happy with the current patch or default execution? Edit it:
+> [!TIP]
 > You can change the default editor used in the [custom configs](#custom-configuration)
 ```bash
 # mon register git
@@ -313,6 +316,7 @@ mon edit git stash
 List registered commands and their patches
 
 ##### Pretty List
+> [!TIP]
 > This is the default listing. You can change the default in the [custom configs](#custom-configuration)
 
 <img src="./assets/mon_list.png" width="400"/>
