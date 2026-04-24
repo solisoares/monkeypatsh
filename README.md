@@ -223,7 +223,26 @@ The test script programmatically tests `bash` completions — both for Monkeypat
 
 ### Known `fzf` issue in `bash`
 
-If you use [fzf](https://github.com/junegunn/fzf) shell completions, its setup must be after Monkeypatsh's.
+> [!NOTE]
+> To prevent fzf recursive call itself on a session **refresh**, setup fzf **after** Monkeypatsh
+
+When the Monkeypatsh registered command has also enabled fzf completion and you re-source your `~/.bashrc` file (session refresh), due to how Monkeypatsh completions are sourced fzf will recursive call itself making the session crash.
+
+The fix:
+```bash
+...
+
+# Monkeypatsh setup
+if [ -f ~/.monrc ]; then source ~/.monrc; fi
+
+# fzf setup
+eval "$(fzf --bash)"
+_fzf_setup_completion [type] cmds...
+
+...
+```
+
+This is **not** an issue in `zsh`
 
 ---------------------------------------
 
