@@ -598,7 +598,7 @@ function _list() {
     if [[ "$#" -eq 0 ]]; then
         local list_mode="$(__parse_config 'list_mode')"
         if [[ ! "$list_mode" =~ flat|pretty|recursive ]]; then
-            list_mode='pretty'
+            list_mode='recursive'
         fi
     fi
 
@@ -856,7 +856,7 @@ Commands:
 
         List registered commands and their patches.
 
-        (no args)       List all commands in pretty format (default).
+        (no args)       List all commands and their patches with visual alias/bin grouping. (default).
         <cmd>           List patches for the given command.
         -a, --alias     List only registered aliases.
         -b, --bin       List only registered binaries.
@@ -923,7 +923,7 @@ Configuration:
 
   list_mode = pretty|flat|recursive
       Controls what 'mon list' displays without a flag.
-      Defaults to 'pretty'.
+      Defaults to 'recursive'.
 
       pretty     - Visual alias/bin grouping.
       flat       - Plain list of all command names.
