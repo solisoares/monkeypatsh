@@ -150,6 +150,16 @@ _mon_completion() {
             COMPREPLY=()
         fi
 
+    # mon help <cur>
+    elif [[ "$word1" =~ ^(hel|help|-h|--help)$ && "$length" -ge 3 ]]; then
+        if [[ "$length" -eq 3 && "$cur" =~ ^- ]]; then
+            COMPREPLY=($(compgen -W '-s --short' -- "$cur"))
+        elif [[ "$length" -eq 3 ]]; then
+            COMPREPLY=($(compgen -W 'register patch unregister list edit backup restore uninstall help' -- "$cur"))
+        else
+            COMPREPLY=()
+        fi
+
     fi
 
 }

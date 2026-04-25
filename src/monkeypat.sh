@@ -796,142 +796,264 @@ function _restore() {
     _info "List registered commands with 'mon list'"
 }
 
+function __help_register() {
+    cat <<'EOF'
+register <cmd>...
+         | [-a | --alias] <cmd>...
+         | [-b | --bin] <cmd>...
+
+      Register commands to be wrapped with monkeypatsh as aliases or binaries.
+
+      -a, --alias   Register as a shell alias. Since aliases cannot be called
+                    by default in scripts, they are a great choice for patching
+                    existing commands in interactive shells, like git, ls ...
+      -b, --bin     Register as a binary (executable on PATH). Binaries work
+                    inside scripts and are ideal for entirely new commands.
+
+      If no flag is given, --alias is assumed. To change this default, change
+      'register_mode' in ~/.monconfig (mon edit --config):
+
+          register_mode=alias|bin
+
+      To switch a command from alias to bin (or vice versa), re-register it
+      with the desired flag:
+
+          mon register --alias foo # register as alias
+          mon register --bin foo   # re-register as binary
+EOF
+}
+
+function __help_patch() {
+    cat <<'EOF'
+patch <cmd> <sub> [<code>]
+      Add a subcommand or option patch to a registered command.
+
+      Interactive (opens your editor):
+          mon patch ls foo
+          mon patch ls --bar
+
+      Inline (for simple one-liners):
+          mon patch ls foo 'echo foo!'
+          mon patch ls --bar 'echo bar!'
+EOF
+}
+
+function __help_unregister() {
+    cat <<'EOF'
+unregister <cmd>...
+           | [ -A | --all]
+           | [ -a | --alias]
+           | [ -b | --bin]
+
+      Unregister commands, deleting their monkeypatsh wrappers.
+
+      -A, --all     Unregister all registered commands.
+      -a, --alias   Unregister all registered aliases.
+      -b, --bin     Unregister all registered binaries.
+EOF
+}
+
+function __help_list() {
+    cat <<'EOF'
+list [<cmd>]
+     | [-a | --alias]
+     | [-b | --bin]
+     | [-f | --flat]
+     | [-p | --pretty]
+     | [-r | --recursive]
+
+      List registered commands and their patches.
+
+      (no args)       List all commands and their patches with visual alias/bin grouping. (default).
+      <cmd>           List patches for the given command.
+      -a, --alias     List only registered aliases.
+      -b, --bin       List only registered binaries.
+      -f, --flat      List all commands as a plain flat list.
+      -p, --pretty    List all commands with visual alias/bin grouping.
+      -r, --recursive List all commands and their patches with visual alias/bin grouping.
+
+      To change what 'mon list' does with no arguments, change 'list_mode'
+      in ~/.monconfig (mon edit --config):
+
+          list_mode=pretty|flat|recursive
+EOF
+}
+
+function __help_edit() {
+    cat <<'EOF'
+edit [<cmd>]
+     | [<cmd> <sub>]
+     | [-c | --config]
+     | [-r | --rc]
+
+      Open a registered command wrapper or patch in your editor.
+
+      (no args)       Open the registered commands directory.
+      <cmd>           Edit the wrapper for <cmd>.
+      <cmd> <sub>     Edit the patch <sub> within <cmd>.
+      -c, --config    Edit ~/.monconfig directly.
+      -r, --rc        Edit ~/.monrc directly (auto-generated, edit with care).
+
+      If you want to add monkeypatsh source code, you can quickly do so with
+      'mon edit mon'.
+EOF
+}
+
+function __help_backup() {
+    cat <<'EOF'
+backup [-f | --file <file>]
+
+      Back up monkeypatsh configuration into a restorable archive.
+      Defaults to ~/.mon.bak.<date>.tar
+
+      -f, --file <file>   Write the backup to <file>.
+EOF
+}
+
+function __help_restore() {
+    cat <<'EOF'
+restore <file>
+      Restore monkeypatsh configuration from a backup archive.
+EOF
+}
+
+function __help_uninstall() {
+    cat <<'EOF'
+uninstall
+      Uninstall monkeypatsh. Equivalent to running `bash uninstall.sh` from
+      the source directory.
+EOF
+}
+
+function __help_help() {
+    cat <<'EOF'
+help [-s|--short] [<cmd>]
+      Show help and exit.
+
+      -s, --short   Show a brief summary of commands and options.
+EOF
+}
+
+function __help_help_flag() {
+    cat <<'EOF'
+-h, --help [-s|--short] [<cmd>]
+      Show help and exit.
+
+      -s, --short   Show a brief summary of commands and options.
+EOF
+}
+
+function __help_configuration() {
+    cat <<'EOF'
+Behavior defaults can be changed in ~/.monconfig (edit with: mon edit --config).
+Settings below only affect default behavior when no flags are provided; use
+explicit flags to override at any time.
+
+register_mode = alias|bin
+    Controls what 'mon register <cmd>' does without a flag.
+    Defaults to 'alias'.
+
+    Monkeypatsh was built around the idea of patching existing
+    commands, so by default, it register aliases.
+
+    alias  -  Register shell alias (good for patching existing tools).
+    bin    -  Register binaries    (good for creating new commands).
+
+list_mode = pretty|flat|recursive
+    Controls what 'mon list' displays without a flag.
+    Defaults to 'recursive'.
+
+    pretty     - Visual alias/bin grouping.
+    flat       - Plain list of all command names.
+    recursive  - All commands with their patches expanded.
+
+editor = <editor>
+    Editor used when opening files interactively (patch, edit).
+    Defaults to '$EDITOR' or 'vi'
+EOF
+}
+
 function _help() {
+    if [[ "$1" =~ -s|--short ]]; then
+        _help_short
+        return
+    fi
+
+    local help_cmd="$1"
+    if [ -n "$help_cmd" ]; then
+        case "$help_cmd" in
+        reg | regi | regis | regist | registe | register) __help_register ;;
+        pat | patc | patch) __help_patch ;;
+        unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister) __help_unregister ;;
+        lis | list) __help_list ;;
+        edi | edit) __help_edit ;;
+        bac | back | backu | backup) __help_backup ;;
+        res | rest | resto | restor | restore) __help_restore ;;
+        uni | unin | unins | uninst | uninsta | uninstal | uninstall) __help_uninstall ;;
+        hel | help | -h | --help) __help_help ;;
+        *)
+            _error "" "unrecognized command '$help_cmd'"
+            _error_hint "Try 'mon help' for more information."
+            return 1
+            ;;
+        esac
+        return
+    fi
+
+    echo "Usage:  mon <command> [options]"
+    echo "        mon [-h | --help | help] [-s|--short] [<command>]"
+    echo ""
+
+    echo "Commands:"
+    {
+        __help_register
+        echo ""
+        __help_patch
+        echo ""
+        __help_unregister
+        echo ""
+        __help_list
+        echo ""
+        __help_edit
+        echo ""
+        __help_backup
+        echo ""
+        __help_restore
+        echo ""
+        __help_uninstall
+        echo ""
+        __help_help
+        echo ""
+    } | sed 's/^/  /'
+
+    echo "Options:"
+    __help_help_flag | sed 's/^/  /'
+    echo ""
+
+    echo "Configuration:"
+    __help_configuration | sed 's/^/  /'
+}
+
+function _help_short() {
     cat <<'EOF'
 Usage:  mon <command> [options]
-        mon [-h | --help | help]
 
 Commands:
-  register <cmd>...
-           | [-a | --alias] <cmd>...
-           | [-b | --bin] <cmd>...
-
-        Register commands to be wrapped with monkeypatsh as aliases or binaries.
-
-        -a, --alias   Register as a shell alias. Since aliases cannot be called
-                      by default in scripts, they are a great choice for patching
-                      existing commands in interactive shells, like git, ls ...
-        -b, --bin     Register as a binary (executable on PATH). Binaries work
-                      inside scripts and are ideal for entirely new commands.
-
-        If no flag is given, --alias is assumed. To change this default, change
-        'register_mode' in ~/.monconfig (mon edit --config):
-
-            register_mode=alias|bin
-
-        To switch a command from alias to bin (or vice versa), re-register it
-        with the desired flag:
-
-            mon register --alias foo # register as alias
-            mon register --bin foo   # re-register as binary
-
-  patch <cmd> <sub> [<code>]
-        Add a subcommand or option patch to a registered command.
-
-        Interactive (opens your editor):
-            mon patch ls foo
-            mon patch ls --bar
-
-        Inline (for simple one-liners):
-            mon patch ls foo 'echo foo!'
-            mon patch ls --bar 'echo bar!'
-
-  unregister <cmd>...
-             | [ -A | --all]
-             | [ -a | --alias]
-             | [ -b | --bin]
-
-        Unregister commands, deleting their monkeypatsh wrappers.
-
-        -A, --all     Unregister all registered commands.
-        -a, --alias   Unregister all registered aliases.
-        -b, --bin     Unregister all registered binaries.
-
-  list [<cmd>]
-       | [-a | --alias]
-       | [-b | --bin]
-       | [-f | --flat]
-       | [-p | --pretty]
-       | [-r | --recursive]
-
-        List registered commands and their patches.
-
-        (no args)       List all commands and their patches with visual alias/bin grouping. (default).
-        <cmd>           List patches for the given command.
-        -a, --alias     List only registered aliases.
-        -b, --bin       List only registered binaries.
-        -f, --flat      List all commands as a plain flat list.
-        -p, --pretty    List all commands with visual alias/bin grouping.
-        -r, --recursive List all commands and their patches with visual alias/bin grouping.
-
-        To change what 'mon list' does with no arguments, change 'list_mode'
-        in ~/.monconfig (mon edit --config):
-
-            list_mode=pretty|flat|recursive
-
-  edit [<cmd>]
-       | [<cmd> <sub>]
-       | [-c | --config]
-       | [-r | --rc]
-
-        Open a registered command wrapper or patch in your editor.
-
-        (no args)       Open the registered commands directory.
-        <cmd>           Edit the wrapper for <cmd>.
-        <cmd> <sub>     Edit the patch <sub> within <cmd>.
-        -c, --config    Edit ~/.monconfig directly.
-        -r, --rc        Edit ~/.monrc directly (auto-generated, edit with care).
-
-        If you want to add monkeypatsh source code, you can quickly do so with
-        'mon edit mon'.
-
-  backup [-f | --file <file>]
-
-        Back up monkeypatsh configuration into a restorable archive.
-        Defaults to ~/.mon.bak.<date>.tar
-
-        -f, --file <file>   Write the backup to <file>.
-
-  restore <file>
-        Restore monkeypatsh configuration from a backup archive.
-
-  uninstall
-        Uninstall monkeypatsh. Equivalent to running bash uninstall.sh from
-        the source directory.
-
-  help
-        Show this help and exit.
+  register    Register commands as aliases or binaries
+  patch       Add a subcommand or option patch to a registered command
+  unregister  Unregister commands and delete their wrappers
+  list        List registered commands and their patches
+  edit        Edit a command wrapper, patch, or config
+  backup      Back up monkeypatsh configuration
+  restore     Restore configuration from a backup archive
+  uninstall   Uninstall monkeypatsh
+  help        Show help and exit
 
 Options:
-  -h, --help
-        Show this help and exit.
+  -h, --help Show help and exit
 
-Configuration:
-  Behavior defaults can be changed in ~/.monconfig (edit with: mon edit --config).
-  Settings below only affect default behavior when no flags are provided; use
-  explicit flags to override at any time.
-
-  register_mode = alias|bin
-      Controls what 'mon register <cmd>' does without a flag.
-      Defaults to 'alias'.
-
-      Monkeypatsh was built around the idea of patching existing
-      commands, so by default, it register aliases.
-
-      alias  -  Register shell alias (good for patching existing tools).
-      bin    -  Register binaries    (good for creating new commands).
-
-  list_mode = pretty|flat|recursive
-      Controls what 'mon list' displays without a flag.
-      Defaults to 'recursive'.
-
-      pretty     - Visual alias/bin grouping.
-      flat       - Plain list of all command names.
-      recursive  - All commands with their patches expanded.
-
-  editor = <editor>
-      Editor used when opening files interactively (patch, edit).
-      Defaults to '$EDITOR' or 'vi'
+Complete help: `mon help`.
+Specific command help: `mon help <cmd>`.
 EOF
 }
 
@@ -968,8 +1090,12 @@ function mon() {
     res | rest | resto | restor | restore)
         _restore "$@"
         ;;
-    hel | help | -h | --help)
-        _help
+    hel | help | -h | --help | -hs | -sh)
+        if [[ "$mon_cmd" =~ -hs|-sh ]]; then
+            _help --short
+            return
+        fi
+        _help "$@"
         ;;
 
     # Not exposed in help: dev commands or used in completions

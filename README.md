@@ -25,6 +25,7 @@ $${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}
   - [List commands](#examples-list)
   - [Unregister commands](#examples-unregister)
   - [Backup and Restore](#examples-backup)
+  - [Help](#examples-help)
 - [Tests](#how-to-test)
 - [Completions](#completions)
   - [Known `fzf` issue in `bash`](#fzf-issue)
@@ -344,6 +345,15 @@ mon unregister git
 mon unregister --all
 mon unregister --alias
 mon unregister --bin
+```
+
+<a name="examples-help"></a>
+
+### Help
+```bash
+mon help                  # full help
+mon help --short          # brief summary of commands and options
+mon help register         # help for a specific command
 ```
 
 <a name="examples-backup"></a>

@@ -370,7 +370,7 @@ function _test_bash_completion() {
 
         shift
         (
-            COMP_WORDS=("$target_cmd" $@)
+            COMP_WORDS=("$target_cmd" "$@")
 
             COMP_CWORD="$((${#COMP_WORDS[@]} - 1))"
 
@@ -438,6 +438,26 @@ function _test_bash_completion() {
     _is_equal "" \
         "$(__get_compreply 'mon' 'edit' '__test_cmd1__' '--non-existent-flag')" \
         "completion for 'mon edit __test_cmd1__ ----non-existent-flag[tab] == null'"
+
+    _is_equal "register" \
+        "$(__get_compreply 'mon' 'help' 'reg')" \
+        "completion for 'mon help reg[tab] == register'"
+
+    _is_equal "register patch unregister list edit backup restore uninstall help" \
+        "$(__get_compreply 'mon' 'help' '')" \
+        "completion for 'mon help [tab] == <subcommands>'"
+
+    _is_equal "-s --short" \
+        "$(__get_compreply 'mon' 'help' '-')" \
+        "completion for 'mon help -[tab] == -s --short'"
+
+    _is_equal "--short" \
+        "$(__get_compreply 'mon' 'help' '--s')" \
+        "completion for 'mon help --s[tab] == --short'"
+
+    _is_equal "" \
+        "$(__get_compreply 'mon' 'help' 'register' '')" \
+        "completion for 'mon help register [tab] == null'"
 
     # ----------------------------Registered new command completions ----------------------------
     _is_equal "--foo" \
