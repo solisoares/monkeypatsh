@@ -32,6 +32,7 @@ $${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}
 - [Custom configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
+- [Uninstall](#uninstall)
 
 ---------------------------------------
 
@@ -408,3 +409,20 @@ Issues, PRs and Discussions are all welcome. Feel free to contribute in any way!
 The MIT License (MIT)
 
 Copyright (c) 2026 Alexandre Soli Soares
+
+
+---------------------------------------
+
+
+<a name="uninstall"></a>
+
+## [Uninstall](./uninstall)
+You can uninstall Monkeypatsh by running:
+```bash
+mon uninstall
+```
+
+Or you can execute the uninstall script directly from the source directory:
+```bash
+./uninstall.sh
+```
