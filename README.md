@@ -198,7 +198,7 @@ bash install.sh --dev
 <a name="how-to-test"></a>
 
 ## Tests
-The `tests.sh` covers the standard flow for monkeypatsh and bash completions.
+The `tests.sh` covers the standard flow for Monkeypatsh and bash completions.
 
 ```bash
 # Install and source monkeypatsh, then:
@@ -393,7 +393,8 @@ Monkeypatsh is configured via `~/.monconfig`. Edit it with:
 mon edit --config
 ```
 
-**Note**: These only affect default behavior. Explicit flags always take precedence.
+> [!NOTE]
+> These only affect default behavior. Explicit flags always take precedence.
 
 | Key | Values | Default | Description |
 |-----|--------|---------|-------------|
@@ -427,7 +428,7 @@ Copyright (c) 2026 Alexandre Soli Soares
 
 <a name="uninstall"></a>
 
-## [Uninstall](./uninstall)
+## Uninstall
 You can uninstall Monkeypatsh by running:
 ```bash
 mon uninstall
