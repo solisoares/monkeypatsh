@@ -9,7 +9,8 @@ $${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}
 
 ## Index
 - [What is Monkeypatsh?](#what-is-monkeypatsh)
-  - [Why not just use aliases](#why-not-just-use-aliases)
+  - [Demo](#demo)
+  - [Why not just use aliases?](#why-not-just-use-aliases)
   - [What if you want to add `--foo` to `ls`](#what-if-you-want-to-patch-ls-foo)
   - [It would be nice to have `--foo` be auto completed](#it-would-be-nice-completion)
   - [You can create new commands from scratch](#you-can-create-new-commands-from-scratch)
@@ -41,6 +42,16 @@ $${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}
 ## What is Monkeypatsh?
 
 Monkeypatsh lets you patch commands with custom behavior — without renaming them, without writing wrapper scripts from scratch, and without cluttering your `.bashrc` with functions.
+
+<a name="demo"></a>
+
+### Demo: Always pass the flag `--index` on `git stash pop`
+
+<img src="./assets/demo.gif" width="640"/>
+
+> [!NOTE]
+> Try doing that with your `gspi` alias (`[g]it [s]tash [p]op --[i]ndex`) and see how it doesn't scale well.
+> And what about wanting to patch other git subcommands?
 
 <a name="why-not-just-use-aliases"></a>
 
