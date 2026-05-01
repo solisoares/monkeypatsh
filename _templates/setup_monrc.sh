@@ -8,6 +8,11 @@ function __mon_source_completions() {
     if [[ -d "{{MON_COMPLETIONS_BASH}}" && -n $BASH ]]; then
         local file
         while read -r file; do
+            local cmd_name="$(basename "$file")"
+            if [[ "$(type -t "_mon_${cmd_name}_completion")" = 'function' ]]; then
+                continue
+            fi
+
             if [[ -f "$file" ]]; then
                 source "$file"
             fi
@@ -16,6 +21,10 @@ function __mon_source_completions() {
     if [[ -d "{{MON_COMPLETIONS_ZSH}}" && -n $ZSH_NAME ]]; then
         local file
         while read -r file; do
+            local cmd_name="$(basename "$file")"
+            if [[ "$(type -t "_mon_${cmd_name}_completion")" = 'function' ]]; then
+                continue
+            fi
             if [[ -f "$file" ]]; then
                 source "$file"
             fi
@@ -57,7 +66,7 @@ function __mon_alias() {
         source "{{MON_RC_FILE}}"
 
         # Refresh completions
-        if [[ "$mon_cmd" =~ reg.* && -f  "{{MON_TO_REFRESH_COMPLETION}}" ]]; then
+        if [[ "$mon_cmd" =~ reg.* && -f "{{MON_TO_REFRESH_COMPLETION}}" ]]; then
             local cmd
             while read -r cmd; do
                 __mon_source_completions "$cmd"
