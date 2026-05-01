@@ -76,16 +76,15 @@ function __mon_alias() {
             __mon_source_completions
         fi
         ;;
-    unr | unre | unreg | unregi | unregis | unregist | unregiste | unregister)
-        # Unset aliases and binaries
-        if [[ -f "{{MON_TO_UNALIAS}}" ]]; then
-            unalias $(cat "{{MON_TO_UNALIAS}}") >/dev/null 2>&1 && rm "{{MON_TO_UNALIAS}}"
-        fi
-        if [[ -f "{{MON_TO_UNHASH}}" ]]; then
-            hash -d $(cat "{{MON_TO_UNHASH}}") >/dev/null 2>&1 && rm "{{MON_TO_UNHASH}}"
-        fi
-        ;;
     esac
+
+    # Unset aliases and binaries
+    if [[ -f "{{MON_TO_UNALIAS}}" ]]; then
+        unalias $(cat "{{MON_TO_UNALIAS}}") >/dev/null 2>&1 && rm "{{MON_TO_UNALIAS}}"
+    fi
+    if [[ -f "{{MON_TO_UNHASH}}" ]]; then
+        hash -d $(cat "{{MON_TO_UNHASH}}") >/dev/null 2>&1 && rm "{{MON_TO_UNHASH}}"
+    fi
 }
 
 alias mon='__mon_alias'
