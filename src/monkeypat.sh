@@ -371,11 +371,11 @@ function _has_confirmed() {
 function _unalias() {
     # Will be unaliased on next mon call
     local cmd="$1"
-    local sed_flags="-i"
+    local sed_flags=("-i")
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed_flags="-i ''"
+        sed_flags=("-i" "")
     fi
-    sed "$sed_flags" -E "/alias[[:space:]]+$cmd/d" "$MON_RC_FILE"
+    sed "${sed_flags[@]}" -E "/alias[[:space:]]+$cmd/d" "$MON_RC_FILE"
     echo "$cmd" >>"$MON_TO_UNALIAS"
 }
 
