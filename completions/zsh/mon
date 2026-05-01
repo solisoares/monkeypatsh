@@ -11,6 +11,7 @@ _mon_completion() {
         'uninstall:Uninstall'
         'backup:Backup configuration'
         'restore:Restore configuration'
+        'version:Print the current version'
         'help:Show help'
     )
 
@@ -23,6 +24,7 @@ _mon_completion() {
     # Subcommand completion
     if (( length == 2 )); then
         _describe -t commands 'mon command' subcmds
+        _arguments '-v[Print the current version]' '--help[Print the current version]'
         _arguments '-h[Show help]' '--help[Show help]'
         return
     fi

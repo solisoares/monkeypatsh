@@ -443,8 +443,8 @@ function _test_bash_completion() {
         "$(__get_compreply 'mon' 'help' 'reg')" \
         "completion for 'mon help reg[tab] == register'"
 
-    _is_equal "register patch unregister list edit backup restore uninstall help" \
-        "$(__get_compreply 'mon' 'help' '')" \
+    _is_equal "backup edit help list patch register restore uninstall unregister version" \
+        "$(__get_compreply 'mon' 'help' '' | tr '[[:space:]]' '\n' | sort | tr '\n' ' ' | xargs)" \
         "completion for 'mon help [tab] == <subcommands>'"
 
     _is_equal "-s --short" \

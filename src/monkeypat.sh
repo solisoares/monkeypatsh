@@ -927,6 +927,13 @@ uninstall
 EOF
 }
 
+function __help_version() {
+    cat <<'EOF'
+version | -v | --version
+      Print the current version of monkeypatsh.
+EOF
+}
+
 function __help_help() {
     cat <<'EOF'
 help [-s|--short] [<cmd>]
@@ -992,6 +999,7 @@ function _help() {
         bac | back | backu | backup) __help_backup ;;
         res | rest | resto | restor | restore) __help_restore ;;
         uni | unin | unins | uninst | uninsta | uninstal | uninstall) __help_uninstall ;;
+        ver | vers | versi | versio | version | -v | --version) __help_version ;;
         hel | help | -h | --help) __help_help ;;
         *)
             _error "" "unrecognized command '$help_cmd'"
@@ -1003,6 +1011,7 @@ function _help() {
     fi
 
     echo "Usage:  mon <command> [options]"
+    echo "        mon [-v | --version | version]"
     echo "        mon [-h | --help | help] [-s|--short] [<command>]"
     echo ""
 
@@ -1023,6 +1032,8 @@ function _help() {
         __help_restore
         echo ""
         __help_uninstall
+        echo ""
+        __help_version
         echo ""
         __help_help
         echo ""
@@ -1049,14 +1060,16 @@ Commands:
   backup      Back up monkeypatsh configuration
   restore     Restore configuration from a backup archive
   uninstall   Uninstall monkeypatsh
+  version     Print the current version
   help        Show help and exit
 
-Options:
-  -h, --help Show help and exit
-
-Complete help: `mon help`.
-Specific command help: `mon help <cmd>`.
+Full help: `mon help`.
+Help for a specific command: `mon help <cmd>`.
 EOF
+}
+
+function _version() {
+   echo "Monkeypatsh $MON_VERSION"
 }
 
 function mon() {
@@ -1098,6 +1111,9 @@ function mon() {
             return
         fi
         _help "$@"
+        ;;
+    ver | vers | versi | versio | version | -v | --version)
+        _version
         ;;
 
     # Not exposed in help: dev commands or used in completions
