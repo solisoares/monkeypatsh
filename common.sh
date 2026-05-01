@@ -66,10 +66,10 @@ function _info() {
 }
 
 function _render() {
-    # envsubst wannabe: renders <value_x> in {{<name_x>}}
-    #   _render <file> \
-    #       <name1> <name2> <name3> \
-    #       <value1> <value2> <value3>
+    # envsubst wannabe: renders a template replacing '<value_x>' by '{{<name_x>}}'
+    #   _render <template> \
+    #       <name1> <name2> <name3> ... \
+    #       <value1> <value2> <value3> ...
 
     local file="$1"
     shift
@@ -85,19 +85,16 @@ function _render() {
     local var_names=("${var_data[@]:0:$half_len}")
     local var_values=("${var_data[@]:$half_len:$half_len}")
 
-    sed_expressions=""
+    local file_content="$(<"$file")"
     local i
     for i in "${!var_names[@]}"; do
         name="${var_names[$i]}"
         value="${var_values[$i]}"
-        if echo "$value" | grep -n "|"; then
-            _error 'render' 'rendered values conflict with sed delimiter'
-            exit 1
-        fi
-        sed_expressions+="s|\{\{${name}\}\}|${value}|g;"
+        file_content="${file_content//\{\{${name}\}\}/${value}}"
     done
 
-    sed -E "$sed_expressions" "$file"
+    echo "$file_content"
+
 }
 
 function _log() {

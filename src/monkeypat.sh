@@ -315,9 +315,10 @@ function _patch() {
         return 1
     fi
 
+
+    local file_content="$(<"$location/$cmd")"
+
     # Add patch function
-    local tmpfile="$(mktemp)"
-    cp "$location/$cmd" "$tmpfile"
     local patch_function_template="$MON_TEMPLATES/patch_cmd_function.sh"
     if [ -z "$code" ]; then
         patch_function_template="$MON_TEMPLATES/patch_new_cmd_function_empty.sh"
@@ -325,15 +326,16 @@ function _patch() {
             patch_function_template="$MON_TEMPLATES/patch_existent_cmd_function_empty.sh"
         fi
     fi
-    local patch_function="$(_render "$patch_function_template" 'cmd' 'opt' 'code' "$cmd" "$opt" "$code" | sed 's/&/\\&/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/_newline_/g')"
-    sed "s|#!/usr/bin/env bash|$patch_function|g" "$tmpfile" | sed 's|_newline_|\n|g' >"$location/$cmd"
+    local patch_function="$(_render "$patch_function_template" 'cmd' 'opt' 'code' "$cmd" "$opt" "$code")"
+    local shebang="\#!/usr/bin/env bash"
+    file_content="${file_content/${shebang}/${patch_function}}"
 
-    # Add patch case
-    cp "$location/$cmd" "$tmpfile"
-    local patch_case="$(_render "$MON_TEMPLATES/patch_cmd_case.sh" 'opt' "$opt" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/_newline_/g')"
-    sed "s|case \"\$opt\" in|$patch_case|g" "$tmpfile" | sed 's|_newline_|\n|g' >"$location/$cmd"
+    # Add new case statement
+    local patch_case="$(_render "$MON_TEMPLATES/patch_cmd_case.sh" 'opt' "$opt")"
+    local case_statement='case "$opt" in'
+    file_content="${file_content/${case_statement}/${patch_case}}"
 
-    rm "$tmpfile"
+    echo "$file_content" > "$location/$cmd"
 
     if [ -z "$code" ]; then
         local patch="_mon_$opt"

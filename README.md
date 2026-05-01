@@ -80,10 +80,10 @@ Monkeypatsh is the structured version of that approach:
 ```bash
 # Patch `ls`
 mon register ls
-mon patch ls -la 'command ls -la |  more'
+mon patch ls -la '\ls -la | more'
 
 # Better yet
-mon patch ls -la 'command ls -la "$@" |  more'
+mon patch ls -la '\ls -la "$@" | more'
 
 # Even better: Prefer the interactive declaration for complex executions
 mon patch ls -la    # → Opens editor
