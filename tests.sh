@@ -247,6 +247,9 @@ function _test_patch() {
     _is_equal "$?" 0 "patch command inline"
 
     # Should give error
+    _mon patch __test_cmd1__ '--fo  o'
+    _is_equal "$?" 1 "cannot patch command with spaces"
+
     _mon patch __test_cmd_not_registered__ --foo "echo 'foo'"
     _is_equal "$?" 1 "cannot patch non registered command inline"
 

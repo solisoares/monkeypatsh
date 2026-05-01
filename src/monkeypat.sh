@@ -308,6 +308,14 @@ function _patch() {
         return 1
     fi
 
+    if [[ "$opt" == *" "* ]]; then
+        local opt_cleaned="${opt_cleaned// /}"
+
+        _error "patch" "cannot patch a command like '$opt'"
+        _error_hint "Try 'mon patch $opt_cleaned [code]'"
+        return 1
+    fi
+
     local location="$(_registered_dir "$cmd")"
 
     if _has_patch "$cmd" "$opt"; then
