@@ -246,6 +246,9 @@ function _test_patch() {
     _mon patch __test_cmd1__ --foo2 "echo 'foo'"
     _is_equal "$?" 0 "patch command inline"
 
+    "$MON_REGISTERED_ALIAS/__test_cmd1__" --foo2 >/dev/null
+    _is_equal "$?" 0 "calling patched subcommand"
+
     # Should give error
     _mon patch __test_cmd1__ '--fo  o'
     _is_equal "$?" 1 "cannot patch command with spaces"
