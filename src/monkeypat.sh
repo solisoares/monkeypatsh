@@ -309,7 +309,7 @@ function _patch() {
     fi
 
     if [[ "$opt" == *" "* ]]; then
-        local opt_cleaned="${opt_cleaned// /}"
+        local opt_cleaned="${opt// /}"
 
         _error "patch" "cannot patch a command like '$opt'"
         _error_hint "Try 'mon patch $opt_cleaned [code]'"
