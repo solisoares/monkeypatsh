@@ -778,7 +778,7 @@ function _backup() {
     tar -uf "$backup_file" -C "$MON_DIR" --exclude="mon" "$(basename $MON_COMPLETIONS)" >/dev/null 2>&1
 
     _info "Backed up monkeypatsh."
-    _info "To restore run: 'mon restore $backup_file'"
+    _info_hint "To restore run: 'mon restore $backup_file'"
 }
 
 function _restore() {
@@ -800,15 +800,22 @@ function _restore() {
     local mon_registered_bak="$tmp_dir/$(basename $MON_REGISTERED)"
     local mon_completions_bak="$tmp_dir/$(basename $MON_COMPLETIONS)"
 
-    tar -xf "$backup_file" -C "$tmp_dir"
+    {
+        tar -xf "$backup_file" -C "$tmp_dir" &&
+            cp "$mon_rc_bak" "$MON_RC_FILE" &&
+            cp "$mon_config_bak" "$MON_CONFIG_FILE" &&
+            cp -r "$mon_registered_bak"/* "$MON_REGISTERED" &&
+            cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
+    } >/dev/null 2>&1
+    local out=$?
 
-    cp "$mon_rc_bak" "$MON_RC_FILE"
-    cp "$mon_config_bak" "$MON_CONFIG_FILE"
-    cp -r "$mon_registered_bak"/* "$MON_REGISTERED"
-    cp -r "$mon_completions_bak"/* "$MON_COMPLETIONS"
+    if [[ "$out" -ne 0 ]]; then
+        _error "restore" "file '$backup_file' is not a valid backup file"
+        return 1
+    fi
 
     _info "Restored monkeypatsh configuration."
-    _info "List registered commands with 'mon list'"
+    _info_hint "List registered commands with 'mon list'"
 }
 
 function __help_register() {

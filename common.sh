@@ -67,6 +67,10 @@ function _info() {
     echo "$@"
 }
 
+function _info_hint() {
+    echo "  $@"
+}
+
 function _render() {
     # envsubst wannabe: renders a template replacing '<value_x>' by '{{<name_x>}}'
     #   _render <template> \
