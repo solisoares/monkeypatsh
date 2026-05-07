@@ -96,6 +96,7 @@ function _render() {
     for i in "${!var_names[@]}"; do
         name="${var_names[$i]}"
         value="${var_values[$i]}"
+        value="$(echo "$value" | sed 's/\&/\\&/g')"
         file_content="${file_content//\{\{${name}\}\}/${value}}"
     done
 

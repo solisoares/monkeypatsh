@@ -335,7 +335,7 @@ function _patch() {
     fi
     local patch_function="$(
         _render "$patch_function_template" 'cmd' 'opt' 'code' "$cmd" "$opt" "$code" |
-            sed 's/&/__mon_ampersand_mon__/g'
+            sed 's/&/\\&/g'
     )"
     local shebang="\#!/usr/bin/env bash"
     file_content="${file_content/${shebang}/${patch_function}}"
@@ -343,12 +343,12 @@ function _patch() {
     # Add new case statement
     local patch_case="$(
         _render "$MON_TEMPLATES/patch_cmd_case.sh" 'opt' "$opt" |
-            sed 's/&/__mon_ampersand_mon__/g'
+            sed 's/&/\\&/g'
     )"
     local case_statement='case "$opt" in'
     file_content="${file_content/${case_statement}/${patch_case}}"
 
-    echo "$file_content" | sed 's/__mon_ampersand_mon__/\&/g' >"$location/$cmd"
+    echo "$file_content" | sed 's/\\&/\&/g' >"$location/$cmd"
 
     if [ -z "$code" ]; then
         local patch="_mon_$opt"
