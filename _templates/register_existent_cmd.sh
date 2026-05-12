@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-function _mon_default() {
-    \{{cmd}} "$@" # default execution
-}
-
 function _clean_opt() {
     local opt="$1"
 
@@ -15,15 +11,19 @@ function _clean_opt() {
     fi
 }
 
-function _main() {
+function _main_mon_{{cmd}}() {
     local opt="$(_clean_opt $1)"
     case "$opt" in
     *)
-        _mon_default "$@"
+        if type -t '_mon_default' >/dev/null; then
+            _mon_default "$@"
+        else
+            \{{cmd}} "$@"
+        fi
         ;;
     esac
 }
 
 if [[ "$0" = "${BASH_SOURCE[0]}" ]]; then
-    _main "$@"
+    _main_mon_{{cmd}} "$@"
 fi

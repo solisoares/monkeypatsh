@@ -266,8 +266,11 @@ function _open_file() {
 
 function _has_patch() {
     local cmd="$1"
-    local sub="$2"
-    if [[ "$(__list_cmd "$cmd" | grep -- "^$sub$")" = "$sub" ]]; then
+    local patch="$2"
+    if [[ "$patch" = 'default' ]]; then
+        patch='_default'
+    fi
+    if [[ "$(__list_cmd --with-default "$cmd" | grep -- "^$patch$")" = "$patch" ]]; then
         return 0
     fi
     return 1
@@ -276,6 +279,10 @@ function _has_patch() {
 function _has_patch_msg() {
     local cmd="$1"
     local patch="$2"
+    if [[ "$patch" = 'default' ]]; then
+        echo "'$cmd' default execution already exist"
+        return
+    fi
     echo "'$cmd $patch' already exist"
 }
 
@@ -293,9 +300,18 @@ function _dont_has_patch_msg() {
 
 function _patch() {
     # Patch an option or sub command (`opt`) to the registered command
-    local cmd="$1"
-    local opt="$2"
-    local code="$3"
+    local cmd
+    local opt
+    local code
+    if [[ "$1" = '--default' ]]; then
+        cmd="$2"
+        opt='default'
+        code="$3"
+    else
+        cmd="$1"
+        opt="$2"
+        code="$3"
+    fi
 
     if [[ "$#" -le 1 ]]; then
         _error "patch" "missing argument for 'patch'"
@@ -312,7 +328,7 @@ function _patch() {
         local opt_cleaned="${opt// /}"
 
         _error "patch" "cannot patch a command like '$opt'"
-        _error_hint "Try 'mon patch $opt_cleaned [code]'"
+        _error_hint "Try 'mon patch $cmd $opt_cleaned [code]'"
         return 1
     fi
 
@@ -388,6 +404,7 @@ function _unalias() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         sed_flags=("-i" "")
     fi
+    sed "${sed_flags[@]}" -E "/registered\/alias\/$cmd/d" "$MON_RC_FILE"
     sed "${sed_flags[@]}" -E "/alias[[:space:]]+$cmd/d" "$MON_RC_FILE"
     echo "$cmd" >>"$MON_TO_UNALIAS"
 }
@@ -594,12 +611,25 @@ function __list_full() {
 }
 
 function __list_cmd() {
-    local cmd="$1"
+    local cmd
+    local with_default
+    if [[ "$1" = '--with-default' ]]; then
+        with_default=1
+        cmd="$2"
+    else
+        cmd="$1"
+    fi
+
     local location="$(_registered_dir "$cmd")"
     if [[ -z "$location" ]]; then
         exit 1
     fi
-    (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*_mon_([\w\-]*)/\1/p')
+
+    if [[ "$with_default" -eq 1 ]]; then
+        (source "$location/$cmd" && declare -F | sed -nE 's/.*[[:space:]]_mon_([\w\-]*)/\1/p' | sed -E 's/^default$/_default/')
+    else
+        (source "$location/$cmd" && declare -F | sed -nE '/_mon_default/! s/.*[[:space:]]_mon_([\w\-]*)/\1/p')
+    fi
 }
 
 function _list() {
@@ -662,7 +692,7 @@ function _list() {
             while read -r cmd; do
                 _pretty_bullet_cmd "$cmd"
                 local patches
-                read -d '\n' -a patches <<<"$(__list_cmd "$cmd")"
+                read -d '\n' -a patches <<<"$(__list_cmd --with-default "$cmd")"
                 if [ "${#patches[@]}" -gt 0 ]; then
                     local patch
 
@@ -709,11 +739,11 @@ function _list() {
     # Cmd
     local cmd="$1"
     if _is_registered "$cmd"; then
-        local patches="$(__list_cmd "$cmd")"
+        local patches="$(__list_cmd --with-default "$cmd")"
         if [[ -z "$patches" ]]; then
             _info "No patches"
         else
-            __list_cmd "$cmd"
+            echo "$patches"
         fi
     else
         _error "list" "$(_not_registered_msg "$cmd")"
@@ -848,13 +878,19 @@ EOF
 function __help_patch() {
     cat <<'EOF'
 patch <cmd> <sub> [<code>]
-      Add a subcommand or option patch to a registered command.
+      | --default <cmd> [<code>]
+
+      Add a subcommand, option, or default behavior patch to a registered command.
+
+      --default         Patch the default execution (called when no subcommand matches).
 
       Interactive (opens your editor):
+          mon patch --default ls
           mon patch ls foo
           mon patch ls --bar
 
       Inline (for simple one-liners):
+          mon patch --default ls 'echo default!'
           mon patch ls foo 'echo foo!'
           mon patch ls --bar 'echo bar!'
 EOF

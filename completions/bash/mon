@@ -40,11 +40,23 @@ _mon_completion() {
 
     # mon patch <cur>
     elif [[ "$word1" =~ ^(pat|patc|patch)$ && "$length" -ge 3 ]]; then
-        # mon patch <cur-cmd>
         local registered="$(monkeypat.sh __list_full)"
-        COMPREPLY=($(compgen -W "$registered" -- "$cur"))
 
-        if [[ "$length" -eq 4 ]]; then # mon patch <cmd> <cur-sub-cmd>
+        if [[ "$word2" = '--default' ]]; then
+            if [[ "$length" -eq 4 ]]; then # mon patch --default <cur-cmd>
+                COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+            else # mon patch --default <cmd> <cur-code>
+                COMPREPLY=()
+            fi
+
+        elif [[ "$length" -eq 3 ]]; then # mon patch <cur-cmd-or-flag>
+            if [[ "$cur" =~ ^- ]]; then
+                COMPREPLY=($(compgen -W "--default" -- "$cur"))
+            else
+                COMPREPLY=($(compgen -W "$registered" -- "$cur"))
+            fi
+
+        elif [[ "$length" -eq 4 ]]; then # mon patch <cmd> <cur-sub-cmd>
             local cmd="$word2"
 
             local existent_and_registered=0
@@ -72,9 +84,7 @@ _mon_completion() {
                 COMPREPLY=($(compgen -W "$patches" -- "$cur"))
             fi
 
-        fi
-
-        if [[ "$length" -ge 5 ]]; then # mon patch <cmd> <sub-cmd> <cur-code>
+        else # mon patch <cmd> <sub-cmd> <cur-code>
             COMPREPLY=()
         fi
 

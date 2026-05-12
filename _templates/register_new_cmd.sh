@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-function _mon_default() {
-    echo "mon: {{cmd}}: default execution not implemented" >&2
-    return 1
-}
-
 function _clean_opt() {
     local opt="$1"
 
@@ -16,20 +11,27 @@ function _clean_opt() {
     fi
 }
 
-function _main() {
+function _main_mon_{{cmd}}() {
     local opt="$(_clean_opt $1)"
     case "$opt" in
-    '')
-        _mon_default "$@"
-        ;;
     *)
-        if [[ "$opt" == -* ]]; then local kind='option'; else local kind='command'; fi
-        echo "mon: {{cmd}}: '$opt' is not a foo $kind" >&2
-        return 1
+        if type -t '_mon_default' >/dev/null; then
+            _mon_default "$@"
+        else
+            if [[ "$#" -eq 0 ]]; then
+                echo "mon: {{cmd}}: default execution not implemented" >&2
+                return 1
+            else
+                if [[ "$opt" == -* ]]; then local kind='option'; else local kind='command'; fi
+                echo "mon: {{cmd}}: '$opt' is not a foo $kind" >&2
+                return 1
+            fi
+
+        fi
         ;;
     esac
 }
 
 if [[ "$0" = "${BASH_SOURCE[0]}" ]]; then
-    _main "$@"
+    _main_mon_{{cmd}} "$@"
 fi

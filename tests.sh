@@ -246,15 +246,37 @@ function _test_patch() {
     _mon patch __test_cmd1__ --foo2 "echo 'foo'"
     _is_equal "$?" 0 "patch command inline"
 
+    _mon patch __test_cmd2__ --foo2 "echo 'other foo2'"
+    local r1="$("$MON_REGISTERED_ALIAS/__test_cmd1__" --foo2)"
+    local r2="$("$MON_REGISTERED_ALIAS/__test_cmd2__" --foo2)"
+    local is_diff=0
+    if [[ "$r1" != "$r2" ]]; then
+        is_diff=1
+    fi
+    _is_equal "$is_diff" 1 \
+    "calling different commands with same subcommand but with different code must give different output"
+
     "$MON_REGISTERED_ALIAS/__test_cmd1__" --foo2 >/dev/null
     _is_equal "$?" 0 "calling patched subcommand"
+
+    _mon patch --default __test_cmd2__ "echo 'default'"
+    _is_equal "$?" 0 "patch --default inline"
+
+    "$MON_REGISTERED_ALIAS/__test_cmd2__" >/dev/null
+    _is_equal "$?" 0 "calling --default patched command"
 
     # Should give error
     _mon patch __test_cmd1__ '--fo  o'
     _is_equal "$?" 1 "cannot patch command with spaces"
 
+    _mon patch --default __test_cmd2__ "echo 'duplicate'"
+    _is_equal "$?" 1 "cannot patch --default twice on same command"
+
     _mon patch __test_cmd_not_registered__ --foo "echo 'foo'"
     _is_equal "$?" 1 "cannot patch non registered command inline"
+
+    _mon patch --default __test_cmd_not_registered__ "echo 'foo'"
+    _is_equal "$?" 1 "cannot patch --default on non registered command"
 
 }
 
@@ -440,6 +462,18 @@ function _test_bash_completion() {
     _is_equal "" \
         "$(__get_compreply 'mon' 'patch' '__test_cmd_not_registered')" \
         "completion for 'mon patch __test_cmd_not_registered[tab] == null'"
+
+    _is_equal "--default" \
+        "$(__get_compreply 'mon' 'patch' '--d')" \
+        "completion for 'mon patch --d[tab] == --default'"
+
+    _is_equal "__test_cmd1__ __test_cmd2__ __test_cmd3__ __test_cmd4__ __test_cmd5__ __test_cmd6__ __test_cmd7__" \
+        "$(__get_compreply 'mon' 'patch' '--default' '__')" \
+        "completion for 'mon patch --default __[tab] == __test_cmd1__ ... __test_cmd7__'"
+
+    _is_equal "" \
+        "$(__get_compreply 'mon' 'patch' '--default' '__test_cmd1__' '')" \
+        "completion for 'mon patch --default __test_cmd1__ [tab] == null'"
 
     _is_equal "" \
         "$(__get_compreply 'mon' 'edit' '__test_cmd1__' '--non-existent-flag')" \

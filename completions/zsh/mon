@@ -58,15 +58,25 @@ _mon_completion() {
 
         pat|patc|patch)
             if (( length == 3 )); then
-                # mon patch <cur-cmd>
-                local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
-                compadd -a registered
+                # mon patch <cur-cmd-or-flag>
+                if [[ "$cur" == -* ]]; then
+                    compadd '--default'
+                else
+                    local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
+                    compadd -a registered
+                fi
+
+            elif [[ "$word2" == '--default' ]]; then
+                if (( length == 4 )); then # mon patch --default <cur-cmd>
+                    local -a registered=( ${(f)"$(monkeypat.sh __list_full)"} )
+                    compadd -a registered
+                fi
+                # length >= 5: no completions
 
             elif (( length == 4 )); then
-                # mon patch <cmd> <cur>
+                # mon patch <cmd> <cur-sub-cmd>
                 local cmd="${words[3]}"
-                if (( length == 4 )) && monkeypat.sh __is_registered "$cmd"; then
-                    # mon patch <cmd> <cur-sub-cmd>
+                if monkeypat.sh __is_registered "$cmd"; then
                     local sub_cmd="${words[4]}"
 
                     # Save the original zsh completion state

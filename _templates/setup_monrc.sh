@@ -62,9 +62,6 @@ function __mon_alias() {
     case "$mon_cmd" in
     reg | regi | regis | regist | registe | register | \
         res | rest | resto | restor | restore)
-        # Refresh aliases
-        source "{{MON_RC_FILE}}"
-
         # Refresh completions
         if [[ "$mon_cmd" =~ reg.* && -f "{{MON_TO_REFRESH_COMPLETION}}" ]]; then
             local cmd
@@ -75,10 +72,19 @@ function __mon_alias() {
         else
             __mon_source_completions
         fi
+
+        # Refresh aliases
+        source "{{MON_RC_FILE}}"
+        ;;
+    pat | patc | patch | \
+        edi | edit | \
+        res | rest | resto | restor | restore)
+        # Refresh aliases
+        source "{{MON_RC_FILE}}"
         ;;
     esac
 
-    # Unset aliases and binaries
+    # Unset stale aliases and binaries
     if [[ -f "{{MON_TO_UNALIAS}}" ]]; then
         unalias $(cat "{{MON_TO_UNALIAS}}") >/dev/null 2>&1 && rm "{{MON_TO_UNALIAS}}"
     fi
