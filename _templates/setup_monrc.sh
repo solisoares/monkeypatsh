@@ -9,7 +9,7 @@ function __mon_source_completions() {
         local file
         while read -r file; do
             local cmd_name="$(basename "$file")"
-            if [[ "$(type -t "_mon_${cmd_name}_completion")" = 'function' ]]; then
+            if type "_mon_${cmd_name}_completion" >/dev/null 2>&1; then
                 continue
             fi
 
@@ -22,7 +22,7 @@ function __mon_source_completions() {
         local file
         while read -r file; do
             local cmd_name="$(basename "$file")"
-            if [[ "$(type -t "_mon_${cmd_name}_completion")" = 'function' ]]; then
+            if type "_mon_${cmd_name}_completion" >/dev/null 2>&1; then
                 continue
             fi
             if [[ -f "$file" ]]; then
