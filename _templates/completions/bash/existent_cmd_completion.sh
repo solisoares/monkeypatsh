@@ -8,7 +8,9 @@ function _mon_{{cmd}}_completion() {
     local length="${#COMP_WORDS[@]}"
 
     # Set COMPREPLY with original complete function
-    ${__mon_{{cmd}}_orig_completion_func:-${_minimal:-}} "$@"
+    if [[ -n "$__mon_{{cmd}}_orig_completion_func" ]]; then
+        "$__mon_{{cmd}}_orig_completion_func" "$@"
+    fi
 
     # Update COMPREPLY with the patches
     if [ "$length" -eq 2 ]; then
