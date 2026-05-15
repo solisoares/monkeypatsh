@@ -561,6 +561,7 @@ $(echo -e "$RESET_COLOR")"
   Failed:  $tests_failed
 $final_msg
 EOF
+    return "$tests_failed"
 }
 
 function __sig_handler_util() {

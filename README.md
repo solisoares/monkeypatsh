@@ -3,9 +3,15 @@
 </div>
 
 <br />
-<div align="center">Streamline shell monkey patching</div>
+<div align="center">
+  Monkey patch any command in the Shell
 
-$${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}$$
+  $${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}$$
+
+  [![Version](https://img.shields.io/github/v/tag/solisoares/monkeypatsh)](http://github.com/solisoares/monkeypatsh/releases)
+  [![Tests](https://github.com/solisoares/monkeypatsh/actions/workflows/test.yml/badge.svg)](https://github.com/solisoares/monkeypatsh/actions/workflows/test.yml)
+</div>
+
 
 ## Index
 - [What is Monkeypatsh?](#what-is-monkeypatsh)
