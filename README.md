@@ -4,7 +4,7 @@
 
 <br />
 <div align="center">
-  Monkey patch any command in the Shell
+  Streamline shell monkey patching
 
   $${\color{grey}Pure \space Bash \space · \space  Linux \space and \space macOS}$$
 
